@@ -158,9 +158,9 @@ public class VMScanLauncher{
 	    		}	    		
 	    		ReportAction action = new ReportAction(run, scanRef, scanId, scanTarget, scannerName, 
 	    				scanNameResolved, this.auth.getServer(), this.auth.getUsername(), 
-	    				this.auth.getPassword().getPlainText(), this.auth.getUseProxy(), 
+	    				this.auth.getPassword(), this.auth.getUseProxy(), 
 	    				this.auth.getProxyServer(), this.auth.getProxyPort(), 
-	    				this.auth.getProxyUsername(), this.auth.getProxyPassword().getPlainText(), 
+	    				this.auth.getProxyUsername(), this.auth.getProxyPassword(), 
 	    				duration, reference, scanType, scanStatus, subScanStatus);
 				run.addAction(action);				
 				

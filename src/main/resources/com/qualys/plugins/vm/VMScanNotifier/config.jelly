@@ -75,7 +75,7 @@
 		    padding-top: 0.5em;
 		    padding-bottom: 0.5em;
 		    color: transparent;
-		    background-image: url('${resURL}/plugin/qualys-vm-scan/images/spinner.gif') !important;
+		    background-image: url('${resURL}/plugin/qualys-vm/images/spinner.gif') !important;
 		    background-repeat: no-repeat !important;
 		    background-position: 2px !important;
 		}    	
@@ -153,7 +153,7 @@
     <!-- Qualys Logo Block -->
     <f:block>
     	<div class="qualys_logo">
-			<img src="${resURL}/plugin/qualys-vm-scan/images/logo.png"/>
+			<img src="${resURL}/plugin/qualys-vm/images/logo.png"/>
 		</div>
     </f:block>
     
@@ -161,25 +161,25 @@
      <f:section title="API Login">
     	<f:block> <div> Provide details for accessing the Qualys VM API.  </div> <br /> </f:block>
 	    <f:block >
-	    	<f:entry field="apiServer" title="* API Server URL:" help="/plugin/qualys-vm-scan/help/apiServer.html">
+	    	<f:entry field="apiServer" title="* API Server URL:" help="/plugin/qualys-vm/help/apiServer.html">
 		        <f:textbox id="apiServer" default="https://qualysapi.qualys.com"/>
 		    </f:entry>    		
 		</f:block >
 		
-	    <f:entry field="credsId" title="* ${%Credentials}" help="/plugin/qualys-vm-scan/help/credentialsId.html">
+	    <f:entry field="credsId" title="* ${%Credentials}" help="/plugin/qualys-vm/help/credentialsId.html">
 			<c:select id="credsId" />
 		</f:entry>
 	    
 	    <f:optionalBlock name="useProxy" title="Use Proxy Settings" field="useProxy" inline="true">
 	    	<f:block> 
 	    		<div style="margin-left:30px;">
-			    	<f:entry title="* Proxy Server:" field="proxyServer" description="Examples: 10.15.201.155, corp.proxyserver.company.com" help="/plugin/qualys-vm-scan/help/proxyServer.html" >
+			    	<f:entry title="* Proxy Server:" field="proxyServer" description="Examples: 10.15.201.155, corp.proxyserver.company.com" help="/plugin/qualys-vm/help/proxyServer.html" >
 			        	<f:textbox style="width: 50%; min-width: 320px;" id="proxyServer" />
 			    	</f:entry>
-			    	<f:entry title="* Proxy Port:" default="80" field="proxyPort" help="/plugin/qualys-vm-scan/help/proxyPort.html">
+			    	<f:entry title="* Proxy Port:" default="80" field="proxyPort" help="/plugin/qualys-vm/help/proxyPort.html">
 			        	<f:textbox style="width: 15%; min-width: 80px;" id="proxyPort" />
 			    	</f:entry>			    	
-			    	<f:entry field="proxyCredentialsId" title="* ${%Credentials}" help="/plugin/qualys-vm-scan/help/proxyCredentialsId.html">
+			    	<f:entry field="proxyCredentialsId" title="* ${%Credentials}" help="/plugin/qualys-vm/help/proxyCredentialsId.html">
 						<c:select id="proxyCredentialsId" />
 					</f:entry>
 		    	</div>
@@ -195,7 +195,7 @@
     		<div>Provide information required to launch the scan</div>
     	</f:block>
     	 <br />
-    	<f:entry title="* Name" field="scanName" help="/plugin/qualys-vm-scan/help/scanName.html">
+    	<f:entry title="* Name" field="scanName" help="/plugin/qualys-vm/help/scanName.html">
 	        <f:textbox style="width: 50%; min-width: 320px;" default="[job_name]_jenkins_build_[build_number]" />
 	    </f:entry>
 	    <f:block>
@@ -206,7 +206,7 @@
 		    	<f:block> 
 		    		<div style="margin-left:30px;">
 		    			<f:block> 
-					    	<f:entry field="hostIp" title="* IP:" help="/plugin/qualys-vm-scan/help/hostIp.html">
+					    	<f:entry field="hostIp" title="* IP:" help="/plugin/qualys-vm/help/hostIp.html">
 				        		<f:textbox id="hostIp" default="0.0.0.0"/>
 				   			</f:entry>
 			   			</f:block>
@@ -217,13 +217,13 @@
 		    <f:optionalBlock name="useEc2" field="useEc2" title="Cloud Instance (AWS EC2)" inline="true">		    	
 		    	<f:block> 
 			    	<div style="margin-left:30px;">
-				    	<f:entry field="ec2Id" title="* EC2 Instance Id:" help="/plugin/qualys-vm-scan/help/ec2Id.html">
+				    	<f:entry field="ec2Id" title="* EC2 Instance Id:" help="/plugin/qualys-vm/help/ec2Id.html">
 			        		<f:textbox id="ec2Id" default="Provide Instance Id"/>
 			   			</f:entry>
-			   			<f:entry field="ec2ConnDetails" title="* EC2 Connector Name:"  help="/plugin/qualys-vm-scan/help/ec2ConnName.html">
+			   			<f:entry field="ec2ConnDetails" title="* EC2 Connector Name:"  help="/plugin/qualys-vm/help/ec2ConnName.html">
 			        		<f:select fillDependsOn="useEc2 apiServer credsId" style="width: 100%; min-width: 100%;" />
 			    		</f:entry>
-			    		<f:entry help="/plugin/qualys-vm-scan/help/runConnector.html">
+			    		<f:entry help="/plugin/qualys-vm/help/runConnector.html">
 		    				<f:checkbox field="runConnector" title="Run selected EC2 connector" checked="true"/>
 		    			</f:entry>
 				    </div>				    
@@ -236,12 +236,12 @@
 	    	</f:block>
 		    	
 	    	<f:block>
-		    	<f:entry title="* Option Profile:" field="optionProfile" name="optionProfile" help="/plugin/qualys-vm-scan/help/optionProfile.html">
+		    	<f:entry title="* Option Profile:" field="optionProfile" name="optionProfile" help="/plugin/qualys-vm/help/optionProfile.html">
 			        <f:select fillDependsOn="apiServer credsId" style="width: 100%; min-width: 100%;" />
 			    </f:entry>
 		    </f:block>
 		    <f:block> 
-	   			<f:entry title="* Scanner Name:" field="scannerName" help="/plugin/qualys-vm-scan/help/scannerName.html">
+	   			<f:entry title="* Scanner Name:" field="scannerName" help="/plugin/qualys-vm/help/scannerName.html">
 	    			<f:select fillDependsOn="apiServer credsId useEc2 useHost" style="width: 100%; min-width: 100%;" />
 	    		</f:entry>
 	   		</f:block>
@@ -259,7 +259,7 @@
 				&#160; &#160; &#160; &#160; &#160; &#160; &#160; 
 				By Vulnerability Severity
 			</div>
-			<f:entry help="/plugin/qualys-vm-scan/help/severity.html"></f:entry>
+			<f:entry help="/plugin/qualys-vm/help/severity.html"></f:entry>
 	      	<f:block>
 		      	<div class="severityBlock" id="SeveritySection">					      
 			      &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failBySev" title="Fail with Severity " />
@@ -273,7 +273,7 @@
 			<div class="conditionTitle">
 				&#160; &#160; &#160; &#160; &#160; &#160; &#160; By QID
 			</div>			
-			<f:entry help="/plugin/qualys-vm-scan/help/qids.html"></f:entry>
+			<f:entry help="/plugin/qualys-vm/help/qids.html"></f:entry>
 	      	<f:block>	
 	      		<div class="severityBlock" id="qidSection">
 			        &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failByQids" title="Fail with any of these QIDs:" />
@@ -285,7 +285,7 @@
     	
     	<f:block>
 			<div class="conditionTitle"> &#160; &#160; &#160; &#160; &#160; &#160; &#160; By CVE</div>						
-			<f:entry  help="/plugin/qualys-vm-scan/help/cves.html"></f:entry>	      	
+			<f:entry  help="/plugin/qualys-vm/help/cves.html"></f:entry>	      	
 	      	<f:block>	
 	      		<div class="severityBlock" id="cveSection">
 			        &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failByCves" title="Fail with any of these CVEs:" />
@@ -297,7 +297,7 @@
     	
 		<f:block>
 			<div class="conditionTitle"> &#160; &#160; &#160; &#160; &#160; &#160; &#160; By CVSS score</div>						
-			<f:entry help="/plugin/qualys-vm-scan/help/cvss.html"></f:entry>
+			<f:entry help="/plugin/qualys-vm/help/cvss.html"></f:entry>
 	      	<f:block>
 		      	<div class="severityBlock" id="SeveritySection">					      
 			      &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failByCvss" name="failByCvss" title="Fail with: " />
@@ -315,7 +315,7 @@
     
 	    <f:block>
 			<div class="conditionTitle"> &#160; &#160; &#160; &#160; &#160; &#160; &#160; By PCI Vulnerability Detections </div>
-			<f:entry  help="/plugin/qualys-vm-scan/help/hasPciVulns.html"></f:entry>	      	
+			<f:entry  help="/plugin/qualys-vm/help/hasPciVulns.html"></f:entry>	      	
 	      	<f:block>	
 	      		<div class="severityBlock" id="SeveritySection">
 			        &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failByPci" title="Fail if any PCI Vulnerabilities are identified" />			        
@@ -325,11 +325,11 @@
 	
 		<f:block><br/><br/></f:block>
 	
-	   	<f:optionalBlock name="evaluatePotentialVulns" title="Apply above fail conditions to potential vulnerabilities as well" field="evaluatePotentialVulns" inline="true" help="/plugin/qualys-vm-scan/help/evaluatePotentialVulns.html"></f:optionalBlock>
+	   	<f:optionalBlock name="evaluatePotentialVulns" title="Apply above fail conditions to potential vulnerabilities as well" field="evaluatePotentialVulns" inline="true" help="/plugin/qualys-vm/help/evaluatePotentialVulns.html"></f:optionalBlock>
 	
 		<!-- <f:block><br/></f:block> -->
 	    
-	    <f:optionalBlock name="doExclude" title="Exclude Conditions" field="doExclude" inline="true" help="/plugin/qualys-vm-scan/help/excludeConditions.html">
+	    <f:optionalBlock name="doExclude" title="Exclude Conditions" field="doExclude" inline="true" help="/plugin/qualys-vm/help/excludeConditions.html">
 			<f:block>	
 	      		<div class="excludeRadio">
 				    &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; &#160; <select id="excludeBy" name="excludeBy" field="excludeBy">
@@ -352,26 +352,26 @@
 		    <f:block>
 				<div style="margin-top:5px;"> &#160; &#160; &#160; &#160; &#160; &#160; &#160; Frequency</div>
 			</f:block>
-		    <f:entry title="&#160; &#160; &#160; &#160; &#160; &#160; &#160;  How often to check for data " field="pollingInterval" help="/plugin/qualys-vm-scan/help/polling.html">
+		    <f:entry title="&#160; &#160; &#160; &#160; &#160; &#160; &#160;  How often to check for data " field="pollingInterval" help="/plugin/qualys-vm/help/polling.html">
 			    <f:textbox style="width: 15%;" default="2"/> minutes.
 			</f:entry>
 			
 			<f:block>
 				<div> &#160; &#160; &#160; &#160; &#160; &#160; &#160; Timeout</div>
 			</f:block>
-		    <f:entry title="&#160; &#160; &#160; &#160; &#160; &#160; &#160; How long to wait for scan results" field="vulnsTimeout" help="/plugin/qualys-vm-scan/help/timeout.html">
+		    <f:entry title="&#160; &#160; &#160; &#160; &#160; &#160; &#160; How long to wait for scan results" field="vulnsTimeout" help="/plugin/qualys-vm/help/timeout.html">
 			    <f:textbox style="width: 15%;" default="60*2"/> minutes.
 			</f:entry>			
 		</f:block>
 		
 	    <f:block>
 	    	<div class="hidden" style="visibility:hidden">
-				<img src="${resURL}/plugin/qualys-vm-scan/images/logo.png" onload="docReady()"/>
+				<img src="${resURL}/plugin/qualys-vm/images/logo.png" onload="docReady()"/>
 			</div>
     	</f:block>
     	<f:section title="Advanced Settings">
 			<f:advanced>
-				<f:entry title="Webhook URL" field="webhookUrl" help="/plugin/qualys-vm-scan/help/webhook.html">
+				<f:entry title="Webhook URL" field="webhookUrl" help="/plugin/qualys-vm/help/webhook.html">
 		        	<f:textbox style="width: 50%; min-width: 320px;" />
 		    	</f:entry>
 			</f:advanced>

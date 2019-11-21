@@ -3,12 +3,14 @@ package com.qualys.plugins.vm.report;
 import java.io.File;
 import java.io.StringReader;
 import java.util.logging.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -19,10 +21,12 @@ import com.qualys.plugins.vm.auth.QualysAuth;
 import com.qualys.plugins.vm.client.QualysVMClient;
 import com.qualys.plugins.vm.client.QualysVMResponse;
 import com.qualys.plugins.vm.util.Helper;
+
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Run;
+import hudson.util.Secret;
 import net.sf.json.JSONObject;
 
 @Extension
@@ -31,7 +35,6 @@ public class ReportAction implements Action {
     private String scanRef;
     private String status;
     private String subScanStatus;
-    private String scanReference;
     private String scanName;
     private String portalUrl; 
     private String duration;
@@ -41,12 +44,12 @@ public class ReportAction implements Action {
     private String reportUrl;
     private String apiServer;
     private String apiUser;
-    private String apiPass;
+    private Secret apiPass;
     private boolean useProxy;
     private String proxyServer;
     private int proxyPort;
     private String proxyUsername;
-    private String proxyPassword;    
+    private Secret proxyPassword;    
     private JSONObject scanResult;
     
     private Run<?, ?> run;
@@ -57,8 +60,8 @@ public class ReportAction implements Action {
     public ReportAction() { }
 
     public ReportAction(Run<?, ?> run, String scanRef, String scanId, String scanTarget, String scannerName,
-    		String scanName, String apiServer, String apiUser, String apiPass, boolean useProxy, 
-    		String proxyServer, int proxyPort, String proxyUsername, String proxyPassword, 
+    		String scanName, String apiServer, String apiUser, Secret apiPass, boolean useProxy, 
+    		String proxyServer, int proxyPort, String proxyUsername, Secret proxyPassword, 
     		String duration, String reference, String scanType, String scanStatus, String subScanStatus) {
         this.scanId = scanId;
         this.scanRef = scanRef;
@@ -131,10 +134,10 @@ public class ReportAction implements Action {
         	}else if (this.status.equalsIgnoreCase("Finished")){
         		try {
         			QualysAuth auth = new QualysAuth();
-        	    	auth.setQualysCredentials(this.apiServer, this.apiUser, this.apiPass);
+        	    	auth.setQualysCredentials(this.apiServer, this.apiUser, this.apiPass.getPlainText());
         	    	if(useProxy) {
         	        	//int proxyPortInt = Integer.parseInt(proxyPort);
-        	        	auth.setProxyCredentials(this.proxyServer, this.proxyPort, this.proxyUsername, this.proxyPassword, this.useProxy);
+        	        	auth.setProxyCredentials(this.proxyServer, this.proxyPort, this.proxyUsername, this.proxyPassword.getPlainText(), this.useProxy);
         	    	}
         	    	QualysVMClient qualysClient = new QualysVMClient(auth, System.out);
 	            	response = qualysClient.getScanResult(scanRef);
@@ -271,10 +274,10 @@ public class ReportAction implements Action {
     	Document result = null;
     	try {
     		QualysAuth auth = new QualysAuth();
-	    	auth.setQualysCredentials(this.apiServer, this.apiUser, this.apiPass);
+	    	auth.setQualysCredentials(this.apiServer, this.apiUser, this.apiPass.getPlainText());
 	    	if(useProxy) {
 	        	//int proxyPortInt = Integer.parseInt(proxyPort);
-	        	auth.setProxyCredentials(this.proxyServer, this.proxyPort, this.proxyUsername, this.proxyPassword, this.useProxy);
+	        	auth.setProxyCredentials(this.proxyServer, this.proxyPort, this.proxyUsername, this.proxyPassword.getPlainText(), this.useProxy);
 	    	}
 	    	QualysVMClient qualysClient = new QualysVMClient(auth, System.out);
     		QualysVMResponse resp = qualysClient.vMScansList(scanIdRef);
