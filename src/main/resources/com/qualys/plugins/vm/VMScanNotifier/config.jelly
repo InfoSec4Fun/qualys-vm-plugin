@@ -108,7 +108,7 @@
 			checkbx.checked = false;			
 		}
 		
-		function configClicked(){		
+		function configClicked(e){		
 		    if(this.attributes.id.value == checkbx2.attributes.id.value){
 			    if(!checkbx2.checked){
 			    	checkbx2.checked = true;
