@@ -727,12 +727,13 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         @POST
         public FormValidation doCheckConnection(@QueryParameter String apiServer, @QueryParameter String credsId,
         		@QueryParameter String proxyServer, @QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, @AncestorInPath Item item) {
+        	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	try {
             	int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
         		String server = apiServer != null ? apiServer.trim() : "";  
         		QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
             	client.testConnection();
-            	return FormValidation.okWithMarkup("Connection test successful!");
+            	return FormValidation.ok("Connection test successful!");
                 
             } catch (Exception e) {        	
             	return FormValidation.error("Connection test failed. (Reason: " + e.getMessage() + ")");
