@@ -84,9 +84,11 @@
     
     <!-- Js Script block -->
 	<script type="text/javascript">
-	document.onreadystatechange = docReady;
-	
+	document.onreadystatechange = docReady;  //for freestyle
+	document.load = docReady;   //for pipeline
+
 	function docReady() {
+	
 		/* var x = document.getElementsByName("evaluatePotentialVulns")[0];
 		if(x!==undefined)
 			x.insertAdjacentHTML('beforebegin', "&#160; &#160; &#160; &#160; &#160; &#160; &#160;" );
@@ -100,15 +102,16 @@
 		var checkbx2 = document.getElementsByName("useEc2")[0];		
 		if(!checkbx2.checked &amp;&amp; !checkbx1.checked){
 			checkbx1.checked = true;
-			updateOptionalBlock(checkbx1,true);
+			//updateOptionalBlock(checkbx1,true);
 		}
-		
+	
 		var checkbx = document.getElementsByName("_.runConnector")[0];		
 		if("${instance.runConnector}" == "false"){
 			checkbx.checked = false;			
 		}
 		
-		function configClicked(e){		
+		
+		function configClicked(){		
 		    if(this.attributes.id.value == checkbx2.attributes.id.value){
 			    if(!checkbx2.checked){
 			    	checkbx2.checked = true;
@@ -121,10 +124,15 @@
 				}
 			}
 			if(this.attributes.id.value == checkbx1.attributes.id.value){
-			    checkbx2.checked=false;
-			    updateOptionalBlock(checkbx2,true);
-			    checkbx1.checked = true;
-			    //return false;
+				if(!checkbx1.checked){
+			    	checkbx1.checked = true;
+			    	updateOptionalBlock(this,true);
+			    }else{
+				    checkbx2.checked=false;
+				    checkbx1.checked = true;
+				    updateOptionalBlock(checkbx2,true);
+				    //return false;
+			    }
 			}
 		} // End of configClicked
 		
