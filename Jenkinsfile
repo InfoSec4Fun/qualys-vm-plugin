@@ -1,1 +1,1 @@
-buildPlugin(findbugs: [run: false])
+buildPlugin(tests: [skip: true])
