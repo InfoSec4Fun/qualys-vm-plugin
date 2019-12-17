@@ -160,14 +160,6 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	public String getCvssBase() {return cvssBase;}
 	@DataBoundSetter
 	public void setCvssBase(String cvssBase) {this.cvssBase = cvssBase;}
-	
-//	public String getCvssV2Temporal() {return cvssV2Temporal;}//
-//	@DataBoundSetter
-//	public void setCvssV2Temporal(String cvssV2Temporal) {this.cvssV2Temporal = cvssV2Temporal;}
-//	
-//	public String getCvssV3Temporal() {return cvssV3Temporal;}//
-//	@DataBoundSetter
-//	public void setCvssV3Temporal(String cvssV3Temporal) {this.cvssV3Temporal = cvssV3Temporal;}
 
 	public String getQidList() {return qidList;}
 	@DataBoundSetter
@@ -363,35 +355,94 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	
 	/* End of Getter Setters*/
 	
-	/*Class Constructor*/
 	 @DataBoundConstructor
-	    public VMScanNotifier(String apiServer, String credsId, boolean useEc2, String ec2Id, 
-	    		boolean runConnector, String ec2ConnDetails) throws Exception {
-	        this.apiServer = apiServer;	        
-	        this.credsId = credsId;
-	        try {
-		        if(useEc2) {
-		        	this.useEc2 = useEc2;
-		        	this.ec2Id = ec2Id;
-			        this.runConnector = runConnector;
-			        if(ec2ConnDetails.isEmpty()) {
-			        	this.ec2ConnDetails = "{\"NoConnectorSelected\":{\"awsAccountId\":0,\"id\":0,\"connectorState\":0}}";
-			        }else {
-			        	this.ec2ConnDetails = ec2ConnDetails;
-			        }
-			        JsonParser jsonParser = new JsonParser();
-		    		JsonObject jo = (JsonObject)jsonParser.parse(this.ec2ConnDetails);    		
-		    		this.ec2ConnName = jo.keySet().toString().replaceAll("\\[|\\]", "");    		
-		    		JsonObject i =  jo.get(this.ec2ConnName).getAsJsonObject();    		
-		    		this.ec2ConnAccountId = i.get("awsAccountId").getAsString();
-		    		this.ec2ConnId = i.get("id").getAsString();	        
-		        }
-	        }catch(ClassCastException e) {
-	        	throw new ClassCastException("Error occured as the connector is not selected. Error Message: " + e.getMessage());
-	        }catch(Exception e) {
-	        	throw new Exception("Error Message: " + e.getMessage());
+	    public VMScanNotifier(String apiServer, String credsId, String hostIp, String ec2ConnDetails, String ec2Id, 
+	    		String scannerName, String scanName, String optionProfile, String proxyServer, 
+	    		int proxyPort, String proxyCredentialsId, boolean useProxy, boolean useHost, boolean useEc2,
+	    		String pollingInterval, String vulnsTimeout, int bySev, boolean failBySev, boolean failByQids, 
+	    		boolean failByCves, String qidList, String cveList, boolean failByCvss, String byCvss, 
+	    		String cvssBase, boolean doExclude, String excludeBy, String excludeList, boolean evaluatePotentialVulns, 
+	    		boolean failByPci,String webhookUrl, boolean runConnector) {
+	     
+			this.apiServer = apiServer;
+	        this.credsId = credsId;        
+	        this.scanName = scanName;
+	        this.optionProfile = optionProfile;
+	        this.scannerName = scannerName;
+	        
+	        
+	        if(useProxy) {
+	        	this.useProxy = useProxy;
+		        this.proxyServer = proxyServer;
+		        this.proxyPort = proxyPort;
+		        this.proxyCredentialsId = proxyCredentialsId;
 	        }
-	    }// end of @DataBoundConstructor
+	                
+	        if(useHost) {
+	        	this.useHost = useHost;
+	        	this.hostIp = hostIp;
+	        	}
+	        
+	        
+	        if(useEc2) {
+	        	this.useEc2 = useEc2;
+	        	this.ec2Id = ec2Id;
+		        this.runConnector = runConnector;
+		        if(ec2ConnDetails == null || ec2ConnDetails.isEmpty()) {
+		        	this.ec2ConnDetails = "{\"NoConnectorSelected\":{\"awsAccountId\":0,\"id\":0,\"connectorState\":0}}";
+		        }else {
+		        	this.ec2ConnDetails = ec2ConnDetails;
+		        }      
+		        JsonParser jsonParser = new JsonParser();
+	    		JsonObject jo = (JsonObject)jsonParser.parse(this.ec2ConnDetails);    		
+	    		this.ec2ConnName = jo.keySet().toString().replaceAll("\\[|\\]", "");    		
+	    		JsonObject i =  jo.get(this.ec2ConnName).getAsJsonObject();    		
+	    		this.ec2ConnAccountId = i.get("awsAccountId").getAsString();
+	    		this.ec2ConnId = i.get("id").getAsString();
+	        }
+	        
+	        this.pollingInterval = pollingInterval;
+	        this.vulnsTimeout = vulnsTimeout;
+	                
+	        if(failBySev) {        	
+	        	this.bySev = bySev;
+	        	this.failBySev = failBySev;        	
+	        }        
+	        
+	        if(failByQids) {
+	        	this.failByQids = failByQids;
+	        	this.qidList = qidList;
+	        }
+	        if(failByCves) {
+	        	this.failByCves = failByCves;
+	        	this.cveList = cveList;
+	        }
+	        if(failByCvss) {
+	        	this.failByCvss = failByCvss;
+	        	this.byCvss = byCvss;
+	        	this.cvssBase = cvssBase;
+	        }
+	        
+	    	if(doExclude) {
+	    		this.doExclude = doExclude;
+	    		this.excludeBy = excludeBy;
+	    		this.excludeList = excludeList;
+	    	}
+	    	
+	    	if(failByPci) {
+	    		this.failByPci = failByPci;
+	    	}
+	    	
+	    	if(failBySev || failByQids || failByCves || failByCvss || failByPci) {
+	    		this.evaluatePotentialVulns = evaluatePotentialVulns;    		   		
+	    	}
+	    	
+	    	if(!StringUtils.isBlank(webhookUrl)) {
+	    		this.webhookUrl = webhookUrl;
+	    	}
+	    } // End of Constructor 
+	 	
+	 	
 	 
 	 /*1st Nested class*/
     @Extension
