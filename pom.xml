@@ -52,7 +52,7 @@
     </plugins>
   </build>
 
-  <name>Qualys VM Plugin</name>
+  <name>Qualys Host Scanning Connector</name>
   <description>Provides a post-deploy step to run a vulnerability scan using the Qualys Vulnerability Management service.</description>
   <url>https://github.com/jenkinsci/qualys-vm-plugin</url>
  
