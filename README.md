@@ -2,7 +2,7 @@
 
 ## About
 
-The Qualys Host Scanning Connector(Qualys VM) Jenkins plugin empowers DevOps teams to automate the VM scanning of host and EC2 cloud instance from Jenkins. By integrating scans in this manner, Host or Cloud instance security testing is accomplished to discover and eliminate security flaws.
+The Qualys Host Scanning Connector empowers DevOps teams to automate the VM scanning of host and EC2 cloud instance from Jenkins. By integrating scans in this manner, Host or Cloud instance security testing is accomplished to discover and eliminate security flaws.
 
 ## How this plugin works
 
