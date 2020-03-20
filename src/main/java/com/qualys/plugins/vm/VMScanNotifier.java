@@ -455,7 +455,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         private static final String HOST_IP = "^\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
         private static final String awsAccountId = "awsAccountId";
         private static final String utf8Error = "Provide valid UTF-8 string value.";
-        private static final String displayName = "Evaluate host/instances with Qualys Vulnerability Management";
+        private static final String displayName = "Scan host/instances with Qualys VM";
         static JsonObject ctorNameList = new JsonObject();
         Helper h = new Helper();
         
