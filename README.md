@@ -22,7 +22,7 @@ This plugin step can be configured during "Post-build" phase of your job, right 
 ### Configuration
 
 If you are using pipeline, you should go to "Pipeline Syntax", and select `qualysVulnerabilityAnalyzer` step.
-If you are using freestyle, you should add `Evaluate host/instances with Qualys Vulnerability Management` post-build step.
+If you are using freestyle, you should add `Scan host/instances with Qualys VM` post-build step.
 
 A form appears with several input fields. Now you are ready to configure the plugin. 
 
