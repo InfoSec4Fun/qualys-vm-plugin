@@ -89,7 +89,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     private boolean useHost = false;
     private boolean useEc2 = false;
     private boolean runConnector = false;
-    private String pluginName = "Qualys Vulnerability Management";    
+    private String pluginName = "Qualys Host Scanning Connector";    
     private String pollingInterval;
     private String vulnsTimeout;    
     private int bySev;
@@ -967,11 +967,11 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	logger.info("Triggered build #" + run.number);
     	try {
     		String version = getPluginVersion();
-    		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" plugin(version-"+ version +") started.");
-    		logger.info(pluginName+" plugin(version-"+ version +") started.");
+    		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" (version-"+ version +") started.");
+    		logger.info(pluginName+" (version-"+ version +") started.");
     	}catch(Exception e) {
-    		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" plugin started.");
-    		logger.info(pluginName+" plugin started.");    		
+    		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" started.");
+    		logger.info(pluginName+" started.");    		
     	}
     	taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " "+pluginName+" scan task - Started.");
     	
