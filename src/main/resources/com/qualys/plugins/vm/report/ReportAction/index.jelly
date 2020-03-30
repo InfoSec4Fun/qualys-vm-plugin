@@ -84,7 +84,7 @@
 	 </style>
 	
 	<div id="build-summary" class="reports-main-content">
-	<div class="summary-title"> QUALYS VULNERABILITY ANALYZER RESULTS </div>
+	<div class="summary-title"> QUALYS VULNERABILITY RESULTS </div>
 		<div id="summary-content" >
 			<div id="summary-left-panel">
 				<div class="status-image"></div>
@@ -233,7 +233,7 @@
 		</div>
 		
 		<div id="vulnerabilities" class="reports-main-content" style="display: grid;">
-			<div class="summary-title"> QUALYS VULNERABILITY ANALYZER RESULTS </div>
+			<div class="summary-title"> QUALYS VULNERABILITY RESULTS </div>
 			<div id="vulnsTable-content">
 		  		<table id="vulnsTable" class="display" width="100%"></table>
 		  	</div>
