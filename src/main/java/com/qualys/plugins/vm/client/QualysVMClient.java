@@ -180,9 +180,21 @@ public class QualysVMClient extends QualysBaseClient {
     			String responseCodeString = getTextValueOfXml(resp, "ABOUT", "WEB-VERSION",empty,empty, "connection");		            	
         		logger.info("WEB-VERSION: " + responseCodeString);       			        		
         		
-        		if(!responseCodeString.startsWith("8")) {						
-					throw new Exception("The QWEB version is less than 8. Version: " + responseCodeString);
-    			} // End of if
+        		int majorVersion = -1;
+        		if (responseCodeString != null ) {
+        			try {
+        				String[] version = responseCodeString.split("\\.");
+            			majorVersion = Integer.parseInt(version[0]);
+        			} catch(Exception e) {
+        				logger.info("Exception while fetching major version from QWEB version " + e);
+        			}
+        			
+        		}
+        		
+        		if (majorVersion != -1 && majorVersion < 8) {
+        			throw new Exception("The QWEB version is less than 8. Are you using older QWEB version? Version: " + responseCodeString);
+        		}
+  
     		} // end of else
     	}catch(Exception e) {
     		if(e.getMessage() == null){
