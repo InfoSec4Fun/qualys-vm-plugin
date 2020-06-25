@@ -758,7 +758,7 @@ public class QualysVMClient extends QualysBaseClient {
     		if(e.getMessage() == null){
     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list."+responseCode+resp.getResponseCode()+nullMessage);
     		} else {
-     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list." + " " +  e.getMessage() + apiTypeName);
+     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list." + " " +  e.getMessage());
      		}
     	}
     	return opList;
