@@ -125,7 +125,7 @@ public class QualysVMClient extends QualysBaseClient {
     		if(e.getMessage() == null){
     			throw new Exception(exceptionWhileToget+" the Scanner list."+responseCode+resp.getResponseCode()+nullMessage);
     		} else {
-    		throw new Exception(exceptionWhileToget+" the Scanner list."+responseCode+resp.getResponseCode()+" Details: " + e.getMessage());
+    		throw new Exception(exceptionWhileToget+" the Scanner list." + e.getMessage());
     		}
 	    }
         return scannerList;
@@ -137,12 +137,17 @@ public class QualysVMClient extends QualysBaseClient {
     	int retryVM = 0, retryPCI = 0;
     	try {
     		nameListVM = getList(retryVM, "Option Profile VM", "optionProfilesVm");
+    		nameList.addAll(nameListVM);
     		nameListPCI = getList(retryPCI, "Option Profile PCI", "optionProfilesPci");
-    	}catch (Exception e) {
-    		throw new Exception(e.getMessage());
+    		nameList.addAll(nameListPCI);
     	}
-    	nameList.addAll(nameListVM);
-    	nameList.addAll(nameListPCI);
+		catch (Exception e) {
+			logger.info("ERROR: " + e.getMessage());
+			if (nameList.isEmpty()) {
+				nameList.add("ERROR: " + e.getMessage());
+			}
+		}
+	
         return nameList;
     }//End of optionProfiles
     
@@ -575,8 +580,12 @@ public class QualysVMClient extends QualysBaseClient {
         	apiResponse.setResponseCode(response.getStatusLine().getStatusCode());
         	logger.info("Server returned with ResponseCode: "+ apiResponse.getResponseCode());
         	if (apiResponse.getResponseCode() == 401) {
-    			throw new Exception("ACCESS DENIED");
-    		}else if (apiResponse.getResponseCode() != 200) {
+    			throw new Exception(" Response Code: 401 - ACCESS DENIED ");
+    		}
+        	if (apiResponse.getResponseCode() == 403) {
+    			throw new Exception(" Response Code: 403 - UNAUTHORIZED ACCESS ");
+    		}
+        	else if (apiResponse.getResponseCode() != 200) {
     			throw new Exception(exceptionWhileTorun+" QualysVMResponse GET method."+responseCode+apiResponse.getResponseCode()+conRefuse);
     		}
         	if(response.getEntity()!=null) {        		
@@ -749,7 +758,7 @@ public class QualysVMClient extends QualysBaseClient {
     		if(e.getMessage() == null){
     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list."+responseCode+resp.getResponseCode()+nullMessage);
     		} else {
-     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list."+responseCode+resp.getResponseCode()+" " + e.getMessage());
+     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list." + " " +  e.getMessage());
      		}
     	}
     	return opList;
