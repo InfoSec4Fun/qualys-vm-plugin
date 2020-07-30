@@ -110,6 +110,32 @@
 			checkbx.checked = false;			
 		}
 		
+		var apiServerTr = document.getElementsByName("_.apiServer")[0].parentNode.parentNode;
+		  
+		  
+		apiServerTr.style.display = 'none';
+		apiServerTr.next('tr').style.display = 'none';
+		  
+		  
+		  
+		  
+	    document.getElementById("platform").onchange = function(){
+			if(this.value === "PCP"){
+				apiServerTr.style.display = 'table-row';
+				//apiServerTr.previous('tr').style.display = 'table-row';
+				apiServerTr.next('tr').style.display = 'table-row';
+			}else{
+				apiServerTr.style.display = 'none';
+				//apiServerTr.previous('tr').style.display = 'none';
+				apiServerTr.next('tr').style.display = 'none';
+			}
+		}
+		
+		if(document.getElementById("platform").value == "PCP"){
+	    	apiServerTr.style.display = 'table-row';
+			apiServerTr.next().style.display='table-row';
+	    }
+	  
 		
 		function configClicked(){		
 		    if(this.attributes.id.value == checkbx2.attributes.id.value){
@@ -168,12 +194,15 @@
     <!-- API login section -->
      <f:section title="API Login">
     	<f:block> <div> Provide details for accessing the Qualys VM API.  </div> <br /> </f:block>
+	    <f:entry title="Your Qualys Portal" field="platform" help="/plugin/qualys-vm/help/platform.html">
+	        <f:select name="platform" style="width: 35%;" id="platform" />
+	    </f:entry>
 	    <f:block >
 	    	<f:entry field="apiServer" title="* API Server URL:" help="/plugin/qualys-vm/help/apiServer.html">
-		        <f:textbox id="apiServer" default="https://qualysapi.qualys.com"/>
-		    </f:entry>    		
-		</f:block >
-		
+		        <f:textbox  style="width: 35%;" id="apiServer" />
+		    </f:entry>
+	    </f:block >
+	    
 	    <f:entry field="credsId" title="* ${%Credentials}" help="/plugin/qualys-vm/help/credentialsId.html">
 			<c:select id="credsId" />
 		</f:entry>
@@ -194,7 +223,7 @@
 		    </f:block> 
 	    </f:optionalBlock>
 	    
-	    <f:validateButton title="Test Connection" progress="Testing..." method="checkConnection" with="apiServer,credsId,proxyServer,proxyPort,proxyCredentialsId,useProxy"/>
+	    <f:validateButton title="Test Connection" progress="Testing..." method="checkConnection" with="platform,apiServer,credsId,proxyServer,proxyPort,proxyCredentialsId,useProxy"/>
 	</f:section>
 	
 	<!-- Launch Scan API Parameters section -->

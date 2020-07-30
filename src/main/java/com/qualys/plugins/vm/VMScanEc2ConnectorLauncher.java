@@ -113,7 +113,7 @@ public class VMScanEc2ConnectorLauncher {
 	    		}	    		
 	    	}
 	    	if (runStatus != null && errorList.contains(runStatus)) {
-	    		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Aborting the build as the connector ("+ec2ConnName+") state is: " + runStatus);
+	    		throw new AbortException("Aborting the build as the connector ("+ec2ConnName+") state is: " + runStatus);
         	}
     	}catch (TimeOutException e) {
     		String error = " Exception: Timeout reached.";

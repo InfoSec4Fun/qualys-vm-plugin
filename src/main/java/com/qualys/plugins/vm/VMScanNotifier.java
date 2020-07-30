@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +73,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 /* Variable Declaration */
 	
 	private String apiServer;
+	private String platform;
     private String credsId;
     private String hostIp;
     private String ec2Id;
@@ -123,6 +125,15 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     public VMScanNotifier() { }
     
     /*Getter Setters*/
+    
+    public String getPlatform() {
+        return platform;
+    }
+    
+    @DataBoundSetter
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
     
     public String getPollingInterval() {return pollingInterval;}
     @DataBoundSetter
@@ -362,9 +373,11 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    		String pollingInterval, String vulnsTimeout, int bySev, boolean failBySev, boolean failByQids, 
 	    		boolean failByCves, String qidList, String cveList, boolean failByCvss, String byCvss, 
 	    		String cvssBase, boolean doExclude, String excludeBy, String excludeList, boolean evaluatePotentialVulns, 
-	    		boolean failByPci,String webhookUrl, boolean runConnector) {
-	     
-			this.apiServer = apiServer;
+	    		boolean failByPci,String webhookUrl, boolean runConnector, String platform) {
+		 	this.platform = platform;
+	        if(platform.equalsIgnoreCase("pcp")) {
+	        	this.apiServer = apiServer;
+	        }
 	        this.credsId = credsId;        
 	        this.scanName = scanName;
 	        this.optionProfile = optionProfile;
@@ -479,6 +492,15 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    	}
 	    	return model;
 	    }
+		
+	    public ListBoxModel doFillPlatformItems() {
+        	ListBoxModel model = new ListBoxModel();
+        	for(Map<String, String> platform: getPlatforms()) {
+        		Option e = new Option(platform.get("name"), platform.get("code"));
+            	model.add(e);
+        	}
+        	return model;
+        }
 		
 		public FormValidation doCheckApiServer(@QueryParameter String apiServer) {
 	    	if(isNonUTF8String(apiServer)) {
@@ -776,14 +798,27 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         } //end of doCheckWebhookUrl FormValidation
         
         @POST
-        public FormValidation doCheckConnection(@QueryParameter String apiServer, @QueryParameter String credsId,
+        public FormValidation doCheckConnection(@QueryParameter String platform,@QueryParameter String apiServer, @QueryParameter String credsId,
         		@QueryParameter String proxyServer, @QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, @AncestorInPath Item item) {
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	try {
             	int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
         		String server = apiServer != null ? apiServer.trim() : "";  
+        		if(!platform.equalsIgnoreCase("pcp")) {
+            		Map<String, String> platformObj = Helper.platformsList.get(platform);
+            		server = platformObj.get("url");
+            		logger.info("Using qualys API Server URL: " + apiServer);
+            	}
         		QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
-            	client.testConnection();
+        		
+        		if(platform.equalsIgnoreCase("pcp")) 
+        		{
+        			client.testConnection();
+        		}
+        		else
+        		{	
+        			client.testConnectionUsingGatewayAPI();
+        		}
             	return FormValidation.ok("Connection test successful!");
                 
             } catch (Exception e) {        	
@@ -793,7 +828,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         } // End of doCheckConnection FormValidation 
        
         @POST
-        public ListBoxModel doFillScannerNameItems(@AncestorInPath Item item, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
+        public ListBoxModel doFillScannerNameItems(@AncestorInPath Item item,@QueryParameter String platform,@QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, 
         		@QueryParameter boolean useEc2, @QueryParameter boolean useHost) {
 
@@ -803,9 +838,14 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         	Option e1 = new Option("Select the scanner appliance", "External");
         	model.add(e1);
         	try {
-        		if(filledInputs(apiServer, credsId, useProxy, proxyServer, proxyPort)) {
+        		if(filledInputs(platform,apiServer, credsId, useProxy, proxyServer, proxyPort)) {
         			int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
-        			String server = apiServer != null ? apiServer.trim() : "";            		
+        			String server = apiServer != null ? apiServer.trim() : "";
+            		if(!platform.equalsIgnoreCase("pcp")) {
+                		Map<String, String> platformObj = Helper.platformsList.get(platform);
+                		server = platformObj.get("url");
+                		logger.info("Using qualys API Server URL: " + apiServer);
+                	}
         			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
         			if(useEc2) {
             			logger.info("Fetching EC2 Scanner Names list ... ");
@@ -841,7 +881,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         }// End of doFillScannerItems ListBoxModel
         
         @POST
-        public ListBoxModel doFillOptionProfileItems(@AncestorInPath Item item, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
+        public ListBoxModel doFillOptionProfileItems(@AncestorInPath Item item, @QueryParameter String platform, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy) {
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	StandardListBoxModel model = new StandardListBoxModel();
@@ -849,9 +889,14 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         	Option e1 = new Option("Default scan option profile", "Initial Options");
         	model.add(e1);        	
         	try {
-        		if(filledInputs(apiServer, credsId, useProxy, proxyServer, proxyPort)) {
+        		if(filledInputs(platform,apiServer, credsId, useProxy, proxyServer, proxyPort)) {
         			int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
         			String server = apiServer != null ? apiServer.trim() : "";
+            		if(!platform.equalsIgnoreCase("pcp")) {
+                		Map<String, String> platformObj = Helper.platformsList.get(platform);
+                		server = platformObj.get("url");
+                		logger.info("Using qualys API Server URL: " + apiServer);
+                	}
         			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
             		logger.info("Fetching Option Profiles list ... ");
             		nameList = client.optionProfiles();	        		
@@ -871,16 +916,21 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         } // End of doFillOptionProfileItems ListBoxModel
         
         @POST
-        public ListBoxModel doFillEc2ConnDetailsItems(@AncestorInPath Item item, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
+        public ListBoxModel doFillEc2ConnDetailsItems(@AncestorInPath Item item,@QueryParameter String platform ,@QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, @QueryParameter boolean useEc2) {
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	StandardListBoxModel model = new StandardListBoxModel();
         	Option e1 = new Option("--select--", "");
         	model.add(e1); 
         	try {        		
-        		if(useEc2 && filledInputs(apiServer, credsId, useProxy, proxyServer, proxyPort)) {
+        		if(useEc2 && filledInputs(platform, apiServer, credsId, useProxy, proxyServer, proxyPort)) {
         			int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
-        			String server = apiServer != null ? apiServer.trim() : "";            		
+        			String server = apiServer != null ? apiServer.trim() : ""; 
+            		if(!platform.equalsIgnoreCase("pcp")) {
+                		Map<String, String> platformObj = Helper.platformsList.get(platform);
+                		server = platformObj.get("url");
+                		logger.info("Using qualys API Server URL: " + apiServer);
+                	}
         			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);    			
         			logger.info("Fetching Ec2 connector name list ... ");	        		
             		ctorNameList = client.getConnector();
@@ -921,11 +971,21 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         	return false;
         } 
         
-        public boolean filledInputs(String apiServer, String credsId, boolean useProxy, String proxyServer, String proxyPort) {			
+        public boolean filledInputs(String platform,String apiServer, String credsId, boolean useProxy, String proxyServer, String proxyPort) {			
+        	if(platform.equalsIgnoreCase("pcp") && StringUtils.isBlank(apiServer)) return false;
         	if(StringUtils.isBlank(credsId)) return false;
     		if(useProxy && StringUtils.isBlank(proxyServer)) return false;
         	return true;
         }// End of filledInputs method
+        
+        public List<Map<String, String>> getPlatforms() {
+        	List<Map<String, String>> result = new ArrayList<Map<String, String>>();
+        	for (Map.Entry<String, Map<String, String>> platform : Helper.platformsList.entrySet()) {
+                Map<String, String>obj = platform.getValue();
+                result.add(obj);
+            }
+            return result;
+        }
     }
 	/* End of DescriptorImpl class */
     
@@ -981,13 +1041,13 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
             	 launchHostScan(run, taskListener, project);
              } catch (Exception e) {
             	 if(e.toString().equalsIgnoreCase("java.lang.Exception")) {
-            		 throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Exception in "+pluginName+" scan result. Finishing the build."); 
+            		 throw new AbortException("Exception in "+pluginName+" scan result. Finishing the build."); 
             	 }else if (e.getMessage().equalsIgnoreCase("sleep interrupted")) {
                 	 logger.log(Level.SEVERE,"Error: User Aborted");                	 
-                     throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Exception in "+pluginName+" scan result: User Aborted"); 
+                     throw new AbortException("Exception in "+pluginName+" scan result: User Aborted"); 
             	 }else {
                 	 logger.log(Level.SEVERE,"Error: "+e.getMessage());            	 
-                     throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Exception in "+pluginName+" scan result: Finishing the build. Reason:\n" + e.getMessage());            		 
+                     throw new AbortException("Exception in "+pluginName+" scan result: Finishing the build. Reason: " + e.getMessage());            		 
             	 }                 
              }finally {
             	 long endTime = System.currentTimeMillis();
@@ -997,7 +1057,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
              }
         } else {
         	taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " No Host IP or EC2 Instance Id Configured.");
-        	throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Host IP or EC2 Instance Id can't be set to null or empty.");
+        	throw new AbortException("Host IP or EC2 Instance Id can't be set to null or empty.");
         }    	
         return;
     }// End of perform method
@@ -1013,13 +1073,28 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	boolean isFailConditionsConfigured = false;
     	String instanceStatus = new String();
     	
+    	Map<String, String> platformObj = Helper.platformsList.get(platform);
+    	String portalUrl = apiServer;
+    	//set apiServer URL according to platform
+    	if(!platform.equalsIgnoreCase("pcp")) {
+    		setApiServer(platformObj.get("url"));
+    		logger.info("Using qualys API Server URL: " + apiServer);
+    	}
+    	listener.getLogger().println("Qualys Platform: " + platform +". Using Qualys API server: " + apiServer);
     	QualysVMClient client = h.getClient(useProxy, apiServer, credsId, proxyServer, proxyPort, proxyCredentialsId, project);
     	try {
     		String log = " Testing connection with Qualys API Server...";
     		String log1 = " Test connection successful.";
     		listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + log);
     		logger.info(log);
-    		client.testConnection();
+    		if(platform.equalsIgnoreCase("pcp")) 
+    		{
+    			client.testConnection();
+    		}
+    		else
+    		{	
+    			client.testConnectionUsingGatewayAPI();
+    		}
     		listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + log1);
     		logger.info(log1);
     	}catch(Exception e) {
@@ -1073,7 +1148,9 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 		    		//If checkbox is checked, decide weather to run the connector depending upon the connector state and instance state
 	    			if(!runConnector && !instanceStatus.equalsIgnoreCase("RUNNING")){
 	    				// If check box is not check and instance is not running, abort the build 
-	    				throw new Exception(new Timestamp(System.currentTimeMillis()) + " Instance state is: "+instanceStatus+". Aborting!!");
+	    				throw new Exception("Instance state is: "+instanceStatus+". Could not find the provided instance ID with a given EC2 configuration. "
+	    						+ "The user might have provided the wrong instance/connector/scanner details. "
+	    						+ "Re-check the EC2 details provided for the scan.");
 	    			} else if(runConnector && runCtorDecision(ec2ConnState, listener)) {
 	    				//if the connector is not in ENDING/PROCESSING/QUEUED/RUNNING, run connector	
 	    				logger.info(pluginName+" task - Started running the Ec2 Connector: " + ec2ConnName);

@@ -45,6 +45,16 @@ class QualysBaseClient {
         return url;
     }
     
+    public URL getAbsoluteUrlForTestConnection(String path) throws MalformedURLException {
+        path = (path.startsWith("/")) ? path : ("/" + path);
+        URL url = new URL(this.auth.getServerForTestConnection() + path);
+        return url;
+    }
+    
+    protected byte[] getJWTAuthHeader() {
+        String userPass = "username=" + this.auth.getUsername() + "&password=" + this.auth.getPassword().getPlainText() + "&token=true";
+        return userPass.getBytes();
+    }
     // This class is used to prepare the credentials by encrypting them for Https request call.
     // This is used in QualysCSClient for [GET] or [POST] calls
     protected String getBasicAuthHeader() {
