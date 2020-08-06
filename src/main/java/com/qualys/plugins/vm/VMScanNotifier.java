@@ -1230,4 +1230,40 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 		}
 		return run;
 	}
+	
+	private void extractEnvVariables(EnvVars envVars, TaskListener listener) throws AbortException {
+		if (useHost && hostIp != null && !hostIp.isEmpty()) {
+			if (hostIp.startsWith("env.") && envVars != null && !envVars.isEmpty()) {
+				String envHostIpKey = hostIp.replace("env.", "");
+				hostIpValue = envVars.get(envHostIpKey);
+				if (hostIpValue != null && !hostIpValue.isEmpty()) {
+					logger.info("Host IP value from environment variable is - " + hostIpValue);
+					listener.getLogger().println(new Timestamp(System.currentTimeMillis())
+							+ " Host IP value from environment variable is - " + hostIpValue);
+				} else {
+					throw new AbortException("Host IP - Environment variable " + envHostIpKey + " is missing !!");
+				}
+			} else {
+				hostIpValue = hostIp;
+			}
+
+		}
+		if (useEc2 && ec2Id != null && !ec2Id.isEmpty()) {
+			if (ec2Id.startsWith("env.") && envVars != null && !envVars.isEmpty()) {
+				String envEc2IdKey = ec2Id.replace("env.", "");
+				ec2IdValue = envVars.get(envEc2IdKey);
+				if (ec2IdValue != null && !ec2IdValue.isEmpty()) {
+					logger.info("EC2 ID value from environment variable is - " + ec2IdValue);
+					listener.getLogger().println(new Timestamp(System.currentTimeMillis())
+							+ " EC2 ID value from environment variable is - " + ec2IdValue);
+				} else {
+					throw new AbortException("Host IP - Environment variable " + envEc2IdKey + " is missing !!");
+				}
+			} else {
+				ec2IdValue = ec2Id;
+			}
+
+		}
+	}
+	
 } // End of VMScanNotifier class
