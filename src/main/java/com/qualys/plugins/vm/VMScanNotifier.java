@@ -51,6 +51,7 @@ import com.qualys.plugins.vm.client.QualysVMClient;
 import com.qualys.plugins.vm.util.Helper;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -118,6 +119,9 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
             + "\uE000-\uFFFD"
             + "\ud800\udc00-\udbff\udfff"
             + "]";
+    
+    private String hostIpValue;
+	private String ec2IdValue;
     /* End of Variable Declaration */
     
     /*Getter Setters*/
@@ -613,11 +617,15 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         
         public FormValidation doCheckHostIp(@QueryParameter String hostIp) {
         	try {
-        		if (hostIp != null && StringUtils.isNotBlank(hostIp)) {        			
+        		if (hostIp != null && StringUtils.isNotBlank(hostIp)) 
+        		{
+        			if (hostIp.startsWith("env.")) {
+        				return FormValidation.ok();
+					}
         			Pattern patt = Pattern.compile(HOST_IP);
                     Matcher matcher = patt.matcher(hostIp);                	
                     if (!(matcher.matches())) {
-                        return FormValidation.error("Host IP is not valid!");
+                        return FormValidation.error("Host IP is not in valid format!");
                     } else {
                     	 return FormValidation.ok();
                     }
@@ -1035,6 +1043,10 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	}
     	taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " "+pluginName+" scan task - Started.");
     	
+    	//This method will extract ec2Id and hostIp from environment variables
+    	extractEnvVariables(run.getEnvironment(taskListener), taskListener);
+    	
+    	
     	if ((useHost && StringUtils.isNotBlank(hostIp)) || (useEc2 && StringUtils.isNotBlank(ec2Id))) {
              try {
             	 project = run.getParent();            	            	 
@@ -1132,7 +1144,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    		// Get instance state and endpoint
 	    		listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " Checking the state of instance(" + this.ec2Id+ ") with instance account(" + this.ec2ConnAccountId+ ")");	    		
 	    		// Get state of Instance
-	    		instanceState = ctor.checkInstanceState(this.ec2Id, this.ec2ConnAccountId);
+	    		instanceState = ctor.checkInstanceState(this.ec2IdValue, this.ec2ConnAccountId);
 	    		instanceStatus = instanceState.get("instanceState").getAsString();	    		
 	    		
 	    		if (instanceState.get("count").getAsInt() == 0) {
@@ -1171,8 +1183,8 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	
     	try {
     		listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " "+pluginName+" scan task - Started.");
-    		logger.info(pluginName+" scan task - Started.");    		
-    		VMScanLauncher launcher = new VMScanLauncher(run, listener, hostIp, ec2Id, ec2ConnName, 
+    		logger.info(pluginName+" scan task - Started.");    		  		
+    		VMScanLauncher launcher = new VMScanLauncher(run, listener, hostIpValue, ec2IdValue, ec2ConnName, 
     				instanceState.get("endpoint").getAsString(), 
         			scannerName, scanName, optionProfile, isFailConditionsConfigured, pollingInterval, 
         			vulnsTimeout, getCriteriaAsJsonObject(), useHost, useEc2, 

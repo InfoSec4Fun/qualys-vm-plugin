@@ -102,7 +102,7 @@
 		var checkbx2 = document.getElementsByName("useEc2")[0];		
 		if(!checkbx2.checked &amp;&amp; !checkbx1.checked){
 			checkbx1.checked = true;
-			//updateOptionalBlock(checkbx1,true);
+			updateOptionalBlock(checkbx1,true);
 		}
 	
 		var checkbx = document.getElementsByName("_.runConnector")[0];		
