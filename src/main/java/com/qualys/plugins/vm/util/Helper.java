@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +64,50 @@ import jenkins.model.Jenkins;
 public class Helper {	
 	private final static String CVE_REGEX = "CVE-\\d{4}-\\d{4,7}";
     private final static Logger logger = Logger.getLogger(Helper.class.getName());
+    
+    public static final Map<String, Map<String, String>> platformsList;
+    static {
+    	Map<String, Map<String, String>> aList = new LinkedHashMap<String,Map<String, String>>();
+    	
+    	Map<String, String> platform1 = new HashMap <String, String>();
+    	platform1.put("name", "US Platform 1"); platform1.put("code", "US_PLATFORM_1"); platform1.put("url", "https://qualysapi.qualys.com");
+    	platform1.put("portal", "https://qualysguard.qualys.com"); aList.put("US_PLATFORM_1", platform1);
+    	
+    	Map<String, String> platform2 = new HashMap <String, String>();
+    	platform2.put("name", "US Platform 2"); platform2.put("code", "US_PLATFORM_2"); platform2.put("url", "https://qualysapi.qg2.apps.qualys.com"); 
+    	platform2.put("portal", "https://qualysguard.qg2.apps.qualys.com"); aList.put("US_PLATFORM_2", platform2);
+    	
+    	Map<String, String> platform3 = new HashMap <String, String>();
+    	platform3.put("name", "US Platform 3"); platform3.put("code", "US_PLATFORM_3"); platform3.put("url", "https://qualysapi.qg3.apps.qualys.com"); 
+    	platform3.put("portal", "https://qualysguard.qg3.apps.qualys.com"); aList.put("US_PLATFORM_3", platform3);
+    	
+    	Map<String, String> platform4 = new HashMap <String, String>();
+    	platform4.put("name", "US Platform 4"); platform4.put("code", "US_PLATFORM_4"); platform4.put("url", "https://qualysapi.qg4.apps.qualys.com");
+    	platform4.put("portal", "https://qualysguard.qg4.apps.qualys.com"); aList.put("US_PLATFORM_4", platform4);
+    	
+    	Map<String, String> platform5 = new HashMap <String, String>();
+    	platform5.put("name", "EU Platform 1"); platform5.put("code", "EU_PLATFORM_1"); platform5.put("url", "https://qualysapi.qualys.eu");
+    	platform5.put("portal", "https://qualysguard.qualys.eu"); aList.put("EU_PLATFORM_1", platform5);
+    	
+    	Map<String, String> platform6 = new HashMap <String, String>();
+    	platform6.put("name", "EU Platform 2"); platform6.put("code", "EU_PLATFORM_2"); platform6.put("url", "https://qualysapi.qg2.apps.qualys.eu");
+    	platform6.put("portal", "https://qualysguard.qg2.apps.qualys.eu"); aList.put("EU_PLATFORM_2", platform6);
+    	
+    	Map<String, String> platform7 = new HashMap <String, String>();
+    	platform7.put("name", "INDIA Platform"); platform7.put("code", "INDIA_PLATFORM"); platform7.put("url", "https://qualysapi.qg1.apps.qualys.in");
+    	platform7.put("portal", "https://qualysguard.qg1.apps.qualys.in"); aList.put("INDIA_PLATFORM", platform7);
+
+    	Map<String, String> platform8 = new HashMap <String, String>();
+    	platform8.put("name", "CANADA Platform"); platform8.put("code", "CANADA_PLATFORM"); platform8.put("url", "https://qualysapi.qg1.apps.qualys.ca");
+    	platform8.put("portal", "https://qualysguard.qg1.apps.qualys.ca"); aList.put("CANADA_PLATFORM", platform8);
+    	
+    	Map<String, String> platform9 = new HashMap <String, String>();
+    	platform9.put("name", "Private Cloud Platform"); platform9.put("code", "PCP"); platform9.put("url", "");
+    	aList.put("PCP", platform9);
+    	
+    	platformsList = Collections.unmodifiableMap(aList);
+    }
+    
     
     public QualysVMClient getClient(boolean useProxy, String server, String credsId, String proxyServer, int proxyPortInt, String proxyCredentialsId, Item item) {
     	QualysAuth auth = new QualysAuth();

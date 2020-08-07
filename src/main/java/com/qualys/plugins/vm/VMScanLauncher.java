@@ -107,10 +107,11 @@ public class VMScanLauncher{
         this.criteriaObject = criteriaObject;
         this.isFailConditionsConfigured = isFailConditionsConfigured;
         
-    	this.apiClient = new QualysVMClient(this.auth, System.out);
         
         this.pollingIntervalForVulns = setTimeoutInMinutes("pollingInterval", DEFAULT_POLLING_INTERVAL_FOR_VULNS, pollingIntervalStr, listener);
 		this.vulnsTimeout = setTimeoutInMinutes("vulnsTimeout", DEFAULT_TIMEOUT_FOR_VULNS, vulnsTimeoutStr, listener);
+		this.apiClient = new QualysVMClient(this.auth, System.out, this.pollingIntervalForVulns, this.vulnsTimeout,
+				listener);
     } // end of Xtor
     
     private int setTimeoutInMinutes(String timeoutType, int defaultTimeoutInMins, String timeout, TaskListener listener) {    	   	
@@ -324,7 +325,7 @@ public class VMScanLauncher{
 	    	}
 	    	if (scanStatus != null && scanStatus.equalsIgnoreCase("error")) {
     			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " The scan(Scan Reference: "+scanIdRef+") is not completed due to an error.");
-        		throw new ScanErrorException(new Timestamp(System.currentTimeMillis()) + " The scan(Scan Reference: "+scanIdRef+") is not completed due to an error.");
+        		throw new ScanErrorException("The scan(Scan Reference: "+scanIdRef+") is not completed due to an error.");
         	}
     	}
     	catch (TimeOutException e) {
@@ -386,10 +387,10 @@ public class VMScanLauncher{
 			Helper.createNewFile(run.getArtifactsDir().getAbsolutePath(), "qualys_" + scanIdNew, scanResultString, buildLogger);
     	}
     	if (scanStatus.equalsIgnoreCase("canceled") && isFailConditionsConfigured) {
-    		throw new Exception(new Timestamp(System.currentTimeMillis()) + " The scan(Scan Reference: "+ scanIdRef + ") has been canceled. Please check the status of the scan on Qualys POD.");
+    		throw new Exception("The scan(Scan Reference: "+ scanIdRef + ") has been canceled. Please check the status of the scan on Qualys POD.");
     	}
     	if (scanStatus.equalsIgnoreCase("error") && isFailConditionsConfigured) {
-    		throw new Exception(new Timestamp(System.currentTimeMillis()) + " The scan(Scan Reference: "+scanIdRef+") is not completed due to an error. Please check the status of the scan on Qualys POD.");
+    		throw new Exception("The scan(Scan Reference: "+scanIdRef+") is not completed due to an error. Please check the status of the scan on Qualys POD.");
     	}	
 		return scanResult;
 	} // end of fetchScanResult
@@ -416,7 +417,7 @@ public class VMScanLauncher{
    				String error = response.getErrorMessage().toString();
    				buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");
    				logger.info("Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");
-   				throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");   				
+   				throw new AbortException("Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");   				
    			}else {
    				NodeList scanList = result.getElementsByTagName("SCAN");
         		for (int temp = 0; temp < scanList.getLength(); temp++) {	        			
@@ -479,7 +480,7 @@ public class VMScanLauncher{
     	
     	// required POST parameters - name, hostIp, etc
     	if(this.scanNameResolved == null || this.scanNameResolved.isEmpty()) {
-    		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Scan Name - Required parameter to launch scan is missing.");
+    		throw new AbortException("Scan Name - Required parameter to launch scan is missing.");
     	} else {
     		vmScan.addProperty("scan_title", this.scanNameResolved.trim());
     	} // End of this.scanNameResolved
@@ -487,20 +488,20 @@ public class VMScanLauncher{
     	if(optionProfile != null && !optionProfile.isEmpty()) {    		
     		vmScan.addProperty("option_title", optionProfile);
     	} else {
-    		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Option Profile - Required parameter to launch scan is missing.");        		
+    		throw new AbortException("Option Profile - Required parameter to launch scan is missing.");        		
     	} // End of optionProfile if
     	
     	if(scannerName != null && !scannerName.isEmpty()) {
 			vmScan.addProperty("iscanner_name", scannerName);
     	} else {
-    		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Scanner Name - Required parameter to launch scan is missing.");        		
+    		throw new AbortException("Scanner Name - Required parameter to launch scan is missing.");        		
     	} // End of scannerName if
     	
     	if (useHost) {
     		if(hostIp != null && !hostIp.isEmpty()) {    			
     			vmScan.addProperty("ip", hostIp);
         	}else {
-        		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Host IP - Required parameter to launch scan is missing.");        		
+        		throw new AbortException("Host IP - Required parameter to launch scan is missing.");        		
         	}    		   		
     	}// end of useHost if
     	
@@ -508,17 +509,17 @@ public class VMScanLauncher{
     		if(ec2Id != null && !ec2Id.isEmpty()) {
     			vmScan.addProperty("ec2_instance_ids", ec2Id);
         	}else {
-        		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " EC2 Instance ID - Required parameter to launch scan is missing.");        		
+        		throw new AbortException("EC2 Instance ID - Required parameter to launch scan is missing.");        		
         	}
     		if(ec2ConnName != null && !ec2ConnName.isEmpty()) {    			
     			vmScan.addProperty("connector_name", ec2ConnName);
         	} else {
-        		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " EC2 Connector Name - Required parameter to launch scan is missing.");
+        		throw new AbortException("EC2 Connector Name - Required parameter to launch scan is missing.");
         	}
     		if(ec2Endpoint != null && !ec2Endpoint.isEmpty()) {    			
     			vmScan.addProperty("ec2_endpoint", ec2Endpoint);
         	} else {
-        		throw new AbortException(new Timestamp(System.currentTimeMillis()) + " EC2 Endpoint - Required parameter to launch scan is missing.");        		
+        		throw new AbortException("EC2 Endpoint - Required parameter to launch scan is missing.");        		
         	}
     	}// end of useHost if
     	
@@ -545,19 +546,20 @@ public class VMScanLauncher{
     		
     		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Launching scan now...");    		
     		QualysVMResponse response = apiClient.launchVmScan(rData);
-    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Making POST Request: " + response.getRequest());
+			// buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Making POST
+			// Request: " + response.getRequest());
     		if (response.getRequestBody() != null) buildLogger.println(new Timestamp(System.currentTimeMillis()) + " API POST request body: " + response.getRequestBody());
     		result = response.getResponseXml();
     		//parse result
    			Integer respCodeObj = response.getResponseCode();
-   			logger.info("POST responseCode: " + respCodeObj.toString());
+			// logger.info("POST responseCode: " + respCodeObj.toString());
    			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " POST responseCode: " + respCodeObj.toString());
    			   			
    			if(respCodeObj == null || respCodeObj != 200 ) {
    				String error = response.getErrorMessage().toString();   				
    				logger.info("Server Response: " + error +". Please do retry after sometime.");
    				buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Server Response: " + error +". Please do retry after sometime.");
-   				throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Error while launching new scan. Server returned: " + error +". Please do retry after sometime.");
+   				throw new AbortException("Error while launching new scan. Server returned: " + error +". Please do retry after sometime.");
    			}else {
    				try {
    					if(result.getDocumentElement().getNodeName().equalsIgnoreCase("SIMPLE_RETURN")) {
@@ -624,7 +626,7 @@ public class VMScanLauncher{
    		    	} 
    			} // end of else
     	}catch (AbortException e) {
-			throw new AbortException(new Timestamp(System.currentTimeMillis()) + " Process Aborted."); 
+			throw new AbortException("Process Aborted."); 
 		}catch (Exception e) {
 			logger.info("Exception while launching scan. Error: "+ e.getMessage());
 			for (StackTraceElement traceElement : e.getStackTrace())
