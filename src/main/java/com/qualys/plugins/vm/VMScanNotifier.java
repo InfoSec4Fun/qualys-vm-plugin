@@ -377,11 +377,14 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    		String pollingInterval, String vulnsTimeout, int bySev, boolean failBySev, boolean failByQids, 
 	    		boolean failByCves, String qidList, String cveList, boolean failByCvss, String byCvss, 
 	    		String cvssBase, boolean doExclude, String excludeBy, String excludeList, boolean evaluatePotentialVulns, 
-	    		boolean failByPci,String webhookUrl, boolean runConnector, String platform) {
-		 	this.platform = platform;
-	        if(platform.equalsIgnoreCase("pcp")) {
-	        	this.apiServer = apiServer;
-	        }
+	    		boolean failByPci,String webhookUrl, boolean runConnector) {
+		 	 	
+		 	if(!StringUtils.isBlank(apiServer)) 
+		 	{
+		 		this.apiServer = apiServer;
+		 	}
+	        
+	        
 	        this.credsId = credsId;        
 	        this.scanName = scanName;
 	        this.optionProfile = optionProfile;
@@ -1234,7 +1237,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	private void extractEnvVariables(EnvVars envVars, TaskListener listener) throws AbortException {
 		if (useHost && hostIp != null && !hostIp.isEmpty()) {
 			if (hostIp.startsWith("env.") && envVars != null && !envVars.isEmpty()) {
-				String envHostIpKey = hostIp.replace("env.", "");
+				String envHostIpKey = hostIp.replaceFirst("env.", "");
 				hostIpValue = envVars.get(envHostIpKey);
 				if (hostIpValue != null && !hostIpValue.isEmpty()) {
 					logger.info("Host IP value from environment variable is - " + hostIpValue);
@@ -1250,7 +1253,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 		}
 		if (useEc2 && ec2Id != null && !ec2Id.isEmpty()) {
 			if (ec2Id.startsWith("env.") && envVars != null && !envVars.isEmpty()) {
-				String envEc2IdKey = ec2Id.replace("env.", "");
+				String envEc2IdKey = ec2Id.replaceFirst("env.", "");
 				ec2IdValue = envVars.get(envEc2IdKey);
 				if (ec2IdValue != null && !ec2IdValue.isEmpty()) {
 					logger.info("EC2 ID value from environment variable is - " + ec2IdValue);
