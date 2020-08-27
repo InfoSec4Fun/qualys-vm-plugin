@@ -466,10 +466,9 @@ public class VMScanLauncher{
     
 	/*This method is called in getAndProcessLaunchScanResult*/
     public Map<String, String> launchScan() throws Exception {
-    	String requestData = new String();
     	String printLine = " Calling Launch Scan API with Payload: ";
     	Document result = null;
-    	JsonObject vmScan = new JsonObject();
+    	StringBuilder vmScan = new StringBuilder();
     	Map<String, String> returnMap = new HashMap<String, String>();		
     	//format name : [Job_Name]_jenkins_build_[build_number]_[timestamp]
     	EnvVars env = run.getEnvironment(listener);
@@ -482,24 +481,24 @@ public class VMScanLauncher{
     	if(this.scanNameResolved == null || this.scanNameResolved.isEmpty()) {
     		throw new AbortException("Scan Name - Required parameter to launch scan is missing.");
     	} else {
-    		vmScan.addProperty("scan_title", this.scanNameResolved.trim());
+    		vmScan.append(String.format("%s=%s&", "scan_title", Helper.urlEncodeUTF8(this.scanNameResolved.trim())));
     	} // End of this.scanNameResolved
     	
-    	if(optionProfile != null && !optionProfile.isEmpty()) {    		
-    		vmScan.addProperty("option_title", optionProfile);
+    	if(optionProfile != null && !optionProfile.isEmpty()) {  
+    		vmScan.append(String.format("%s=%s&", "option_title", Helper.urlEncodeUTF8(optionProfile)));
     	} else {
     		throw new AbortException("Option Profile - Required parameter to launch scan is missing.");        		
     	} // End of optionProfile if
     	
     	if(scannerName != null && !scannerName.isEmpty()) {
-			vmScan.addProperty("iscanner_name", scannerName);
+    		vmScan.append(String.format("%s=%s&", "iscanner_name", Helper.urlEncodeUTF8(scannerName)));
     	} else {
     		throw new AbortException("Scanner Name - Required parameter to launch scan is missing.");        		
     	} // End of scannerName if
     	
     	if (useHost) {
-    		if(hostIp != null && !hostIp.isEmpty()) {    			
-    			vmScan.addProperty("ip", hostIp);
+    		if(hostIp != null && !hostIp.isEmpty()) {    
+    			vmScan.append(String.format("%s=%s&", "ip", Helper.urlEncodeUTF8(hostIp)));
         	}else {
         		throw new AbortException("Host IP - Required parameter to launch scan is missing.");        		
         	}    		   		
@@ -507,26 +506,26 @@ public class VMScanLauncher{
     	
     	if (useEc2) {
     		if(ec2Id != null && !ec2Id.isEmpty()) {
-    			vmScan.addProperty("ec2_instance_ids", ec2Id);
+    			vmScan.append(String.format("%s=%s&", "ec2_instance_ids", Helper.urlEncodeUTF8(ec2Id)));
         	}else {
         		throw new AbortException("EC2 Instance ID - Required parameter to launch scan is missing.");        		
         	}
-    		if(ec2ConnName != null && !ec2ConnName.isEmpty()) {    			
-    			vmScan.addProperty("connector_name", ec2ConnName);
+    		if(ec2ConnName != null && !ec2ConnName.isEmpty()) {    
+    			vmScan.append(String.format("%s=%s&", "connector_name", Helper.urlEncodeUTF8(ec2ConnName)));
         	} else {
         		throw new AbortException("EC2 Connector Name - Required parameter to launch scan is missing.");
         	}
-    		if(ec2Endpoint != null && !ec2Endpoint.isEmpty()) {    			
-    			vmScan.addProperty("ec2_endpoint", ec2Endpoint);
+    		if(ec2Endpoint != null && !ec2Endpoint.isEmpty()) { 
+    			vmScan.append(String.format("%s=%s&", "ec2_endpoint", Helper.urlEncodeUTF8(ec2Endpoint)));
         	} else {
         		throw new AbortException("EC2 Endpoint - Required parameter to launch scan is missing.");        		
         	}
     	}// end of useHost if
     	
     	try{    		
-    		requestData = Helper.urlEncodeUTF8(vmScan);
-    		String rData = requestData.replace("%22", "");
-    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + printLine + rData.toString());    		
+    		String rData = vmScan.toString();
+    		rData = rData.substring(0, vmScan.length() - 1);
+    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + printLine + rData);    		
     		
     		if(isFailConditionsConfigured) {
     			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Using build failure conditions configuration: " + criteriaObject);
