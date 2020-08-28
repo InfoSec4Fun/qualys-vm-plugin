@@ -362,7 +362,7 @@ public class QualysVMClient extends QualysBaseClient {
 		return response;
 	}
     
-    public JsonObject getConnector() throws Exception {
+        public JsonObject getConnector() throws Exception {
     	logger.info("Connector Name is accepted and getting the DOC.");
     	NodeList dataList = null;
     	Document response = null;    	
@@ -732,9 +732,9 @@ public class QualysVMClient extends QualysBaseClient {
         	apiResponse.setResponseCode(response.getStatusLine().getStatusCode());
         	logger.info("Server returned with ResponseCode: "+ apiResponse.getResponseCode());
         	if (apiResponse.getResponseCode() == 401) {
-    			throw new Exception(" Response Code: 401 - ACCESS DENIED ");
-    		}
-        	if (apiResponse.getResponseCode() == 403) {
+    			throw new Exception(" Response Code:401 - ACCESS DENIED ");
+			}
+			if (apiResponse.getResponseCode() == 403) {
     			throw new Exception(" Response Code: 403 - UNAUTHORIZED ACCESS ");
 			}
 			// Handling the concurrent api limit reached case
@@ -781,7 +781,7 @@ public class QualysVMClient extends QualysBaseClient {
 		            }		  
 		            apiResponse.setResponse(finalResult.getAsJsonObject());
 	            }else {	            	
-		            apiResponse.setResponseXml(getDoc(response));
+		            apiResponse.setResponseXml(getDoc(response, true));
 	            }// End of inner if-else
         	} // End of If            
         }catch (JsonParseException je) {        	
@@ -796,32 +796,33 @@ public class QualysVMClient extends QualysBaseClient {
     			throw new Exception(e.getMessage());
     		}
 		} catch (Exception e) {
-            apiResponse.setErrored(true);
-            apiResponse.setErrorMessage(e.getMessage());
-            if(e.getMessage() == null){
-    			throw new Exception(exceptionWhileTorun+" Qualys VM Response GET method."+responseCode+apiResponse.getResponseCode()+nullMessage);
-    		} else {
-    			throw new Exception(e.getMessage());
-    		}
-        } // End of catch        
-        return apiResponse;
-    } // End of QualysVMResponse get() method
-    
-    // Do a [POST] call
-    private QualysVMResponse post(String apiPath, String requestData, String requestXmlString) throws Exception {
-    	QualysVMResponse apiResponse = new QualysVMResponse();
-        String apiResponseString = "";
-        CloseableHttpClient httpclient = null;        
-        String uri = null; 
-        		
-        try {
-        	URL url = this.getAbsoluteUrl(apiPath);
-        	if (!requestData.isEmpty()) {        		
-        		uri = url.toString() +"&"+ requestData;
-        		apiResponse.setRequestParam(requestXmlString);
-        	}else {
-        		uri = url.toString();
-        	}
+			apiResponse.setErrored(true);
+			apiResponse.setErrorMessage(e.getMessage());
+			if (e.getMessage() == null) {
+				throw new Exception(exceptionWhileTorun + " Qualys VM Response GET method." + responseCode
+						+ apiResponse.getResponseCode() + nullMessage);
+			} else {
+				throw new Exception(e.getMessage());
+			}
+		} // End of catch
+		return apiResponse;
+	} // End of QualysVMResponse get() method
+
+	// Do a [POST] call
+	private QualysVMResponse post(String apiPath, String requestData, String requestXmlString) throws Exception {
+		QualysVMResponse apiResponse = new QualysVMResponse();
+		String apiResponseString = "";
+		CloseableHttpClient httpclient = null;
+		String uri = null;
+
+		try {
+			URL url = this.getAbsoluteUrl(apiPath);
+			if (!requestData.isEmpty()) {
+				uri = url.toString() + "&" + requestData;
+				apiResponse.setRequestParam(requestXmlString);
+			} else {
+				uri = url.toString();
+			}
 			if(listener!=null)
 				listener.getLogger().println("Making POST Request: " + uri.toString());
 			logger.info("Making POST Request: " + uri.toString());
@@ -879,13 +880,29 @@ public class QualysVMClient extends QualysBaseClient {
 				}
 
 			}
+			else if (apiResponse.getResponseCode() == 400) {
+				String msg = "";
+				Document doc = null;
+				if (response.getEntity() != null) {
+					doc = getDoc(response, false);
+					if (doc.getElementsByTagName("TEXT").getLength() != 0) {
+						msg = doc.getElementsByTagName("TEXT").item(0).getTextContent().trim();
+					}
+				}
+				if (msg != "") {
+					throw new Exception("QualysVMResponse POST method." + responseCode + apiResponse.getResponseCode() + " Bad request; Error: " + msg + ".");
+				}
+				else {
+					throw new Exception("QualysVMResponse POST method." + responseCode + apiResponse.getResponseCode() + "Bad request");
+				}
+			}
 			// change end
 			else if (apiResponse.getResponseCode() != 200) {
 				throw new Exception(exceptionWhileTorun + " QualysVMResponse POST method." + responseCode
 						+ apiResponse.getResponseCode() + conRefuse);
 			}
 			if (response.getEntity() != null) {
-				apiResponse.setResponseXml(getDoc(response));
+				apiResponse.setResponseXml(getDoc(response, true));
 			} // End of If
 		} catch (JsonParseException je) {
 			apiResponse.setErrored(true);
@@ -1076,14 +1093,16 @@ public class QualysVMClient extends QualysBaseClient {
 		}
     }// End of getTextValueOfXml String
     
-    private Document getDoc(CloseableHttpResponse response) throws Exception {
+    private Document getDoc(CloseableHttpResponse response, boolean checkHeader) throws Exception {
     	String apiResponseString = "";
     	Document doc = null;
     	try {
     		apiResponseString = getresponseString(response);
+    		if (checkHeader) {
     		 if (!apiResponseString.contains("<?xml")) {
              	throw new InvalidAPIResponseException("apiResponseString is not proper XML.");
              }
+    		}
             // Parse the XML response to XML Document
 //	            logger.info(apiResponseString);
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
