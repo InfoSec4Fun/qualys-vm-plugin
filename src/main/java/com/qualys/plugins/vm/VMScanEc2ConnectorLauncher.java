@@ -107,12 +107,11 @@ public class VMScanEc2ConnectorLauncher {
 	    			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Failed to get state result; timeout of " + vulnsTimeout + " minutes reached.");    			
 	    			throw new TimeOutException("Timeout reached.");	    			
 	    		}       		    		
-	    		if (runStatus == null) {
-	    			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Waiting for " + pollingIntervalForVulns + " minute(s) before making next attempt for connector state of " + this.ec2ConnName + "(" +this.connId+")");
+
+	    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Waiting for " + pollingIntervalForVulns + " minute(s) before making next attempt for connector state of " + this.ec2ConnName + "(" +this.connId+")");
     			Thread.sleep(pollingInMillis);
-	    		}	    		
 	    	}
-	    	if (runStatus != null && errorList.contains(runStatus)) {
+	    	if (errorList.contains(runStatus)) {
 	    		throw new AbortException("Aborting the build as the connector ("+ec2ConnName+") state is: " + runStatus);
         	}
     	}catch (TimeOutException e) {

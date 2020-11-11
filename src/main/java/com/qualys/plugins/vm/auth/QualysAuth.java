@@ -5,13 +5,8 @@ import java.util.List;
 
 import hudson.util.Secret;
 
-enum AuthType {
-    Basic, OAuth
-}
-
 public class QualysAuth {
-    private AuthType authType;
-    private String server;
+    private String server = null;
     private String username;
     private Secret password;
     private String authKey;
@@ -21,9 +16,9 @@ public class QualysAuth {
     private Secret proxyPassword;
     private int proxyPort;
     private String gatewayURL = null;
-    public static List<String> serverPlatformURL = new ArrayList<String>();
-    public static List<String> serverApiURL = new ArrayList<String>();
-    public static List<String> serverGatewayURL = new ArrayList<String>();
+    private static List<String> serverPlatformURL = new ArrayList<String>();
+    private static List<String> serverApiURL = new ArrayList<String>();
+    private static List<String> serverGatewayURL = new ArrayList<String>();
 
     public QualysAuth () {
         
@@ -60,15 +55,8 @@ public class QualysAuth {
     }
 
     public QualysAuth (String server, String oauthKey) {
-        this.authType = AuthType.OAuth;
         this.authKey = oauthKey;
     }
-
-    
-    
-    public void setAuthType(AuthType authType) {
-		this.authType = authType;
-	}
 
 	public void setServer(String server) {
 		this.server = server;
@@ -193,7 +181,6 @@ public class QualysAuth {
     }
    
     public void setQualysCredentials(String server, String username, String password) {
-    	this.authType = AuthType.Basic;
         this.server = server;
         this.username = username;
         this.password = Secret.fromString(password);

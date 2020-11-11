@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -63,7 +64,7 @@ public class VMScanLauncher{
     
     private boolean isFailConditionsConfigured;
     private JsonObject criteriaObject;
-    private JsonObject WebhookData;
+    private JsonObject webhookData;
     
     private QualysVMClient apiClient;
 	private String duration;
@@ -71,7 +72,8 @@ public class VMScanLauncher{
 	private String scanType;
 	private JsonObject result = null;
 	private boolean passed = true;
-	private boolean hostNotAlive = false;	
+	private boolean hostNotAlive = false;
+	private String network;
     
     private final static Logger logger = Helper.getLogger(VMScanLauncher.class.getName());
     private final static int DEFAULT_POLLING_INTERVAL_FOR_VULNS = 2; //2 minutes
@@ -81,13 +83,14 @@ public class VMScanLauncher{
     		String ec2Endpoint, String scannerName, String scanName, String optionProfile,  
     		boolean isFailConditionsConfigured, String pollingIntervalStr, String vulnsTimeoutStr, 
     		JsonObject criteriaObject, boolean useHost, boolean useEc2, QualysAuth auth,  
-    		String webhookUrl, String byCvss) {
+    		String webhookUrl, String byCvss, String network) {
     	
     	this.run = run;
         this.listener = listener;
         this.buildLogger = listener.getLogger();
         this.useHost = useHost;
         this.hostIp = hostIp;
+        this.network = network;
         this.scanName = scanName.trim();
         this.scannerName = scannerName;
         this.useEc2 = useEc2;
@@ -100,7 +103,7 @@ public class VMScanLauncher{
         this.byCvss = byCvss;
         
         
-        if(this.scanName != null && !this.scanName.isEmpty()) {
+        if(!this.scanName.isEmpty()) {
         	this.scanName += "_[timestamp]";
         }
         
@@ -178,7 +181,9 @@ public class VMScanLauncher{
 						buildLogger.println(new Timestamp(System.currentTimeMillis()) + " WARNING: The host is not alive!!!");
 						Helper.copyEvaluationResultToFile(run.getArtifactsDir().getAbsolutePath(), "qualys_" + scanRefNew, buildLogger, new JsonObject());
 						hostNotAlive = true;
-						if(webhookUrl != null && !StringUtils.isEmpty(webhookUrl)) {sendToWebhook(evaluationResult);}
+						if(webhookUrl != null && !StringUtils.isEmpty(webhookUrl)) {
+							sendToWebhook(null);
+						}
 						throw new BuildFailedException("Scan Status: "+ scanStatus+ " | Sub Scan Status: "+ subScanStatus);
 					}
 				}
@@ -243,7 +248,7 @@ public class VMScanLauncher{
     			JsonObject severity = sevObj.get(""+i).getAsJsonObject();
     			if(severity.has("configured") && !severity.get("configured").isJsonNull() && severity.get("configured").getAsInt() != -1) {
 	    			sevFound += "Severity"+ i +": "+ (severity.get("found").isJsonNull() ? 0 : severity.get("found").getAsString()) + ";";
-	    			sevConfigured += "Severity"+ i +">="+ severity.get("configured").getAsString() + ";";
+	    			sevConfigured += (new StringBuilder()).append("Severity").append(i).append(">=").append(severity.get("configured").getAsString()).append(";").toString();
 		    		boolean sevPass = severity.get("result").getAsBoolean();
 		    		if(!sevPass) {
 		    			severityFailed = true;
@@ -261,14 +266,14 @@ public class VMScanLauncher{
 	private String getFailureMessages(JsonObject result, String field) {
 		String configured = "\n\tConfigured : ";
 		String found = "\n\tFound : ";
-		String failureMsg = new String();
+		String failureMsg = "";
 		if(result.has(field) && result.get(field) != null && !result.get(field).isJsonNull()) {
     		JsonObject obj = result.get(field).getAsJsonObject();
     		boolean pass = obj.get("result").getAsBoolean();
     		if(!pass) {
     			found += obj.get("found").getAsString();
     			configured += obj.get("configured").getAsString();
-    			failureMsg = "\n" + field.toUpperCase()+" configured in Failure Conditions were found in the scan result : " + configured + found ;
+    			failureMsg = "\n" + field.toUpperCase(Locale.ENGLISH)+" configured in Failure Conditions were found in the scan result : " + configured + found ;
     		}
 		}
 		return failureMsg;
@@ -323,7 +328,7 @@ public class VMScanLauncher{
     			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Waiting for " + pollingIntervalForVulns + " minute(s) before making next attempt for scanResult of Scan Reference:" + scanIdRef);
     			Thread.sleep(pollingInMillis);	    		
 	    	}
-	    	if (scanStatus != null && scanStatus.equalsIgnoreCase("error")) {
+	    	if (scanStatus.equalsIgnoreCase("error")) {
     			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " The scan(Scan Reference: "+scanIdRef+") is not completed due to an error.");
         		throw new ScanErrorException("The scan(Scan Reference: "+scanIdRef+") is not completed due to an error.");
         	}
@@ -365,12 +370,12 @@ public class VMScanLauncher{
 	        			}
 	        		}
   					buildLogger.println(
-  							"\tAPI Response Code: "+printMap.get("errorCode").toString()
-  							+ "\n\tAPI Response Message: "+printMap.get("errorText").toString());
+  							"\tAPI Response Code: "+printMap.get("errorCode")
+  							+ "\n\tAPI Response Message: "+printMap.get("errorText"));
 				} catch (Exception e1) {
 					buildLogger.println(
-							"\tAPI Response Code: "+printMap.get("errorCode").toString()
-  							+ "\n\tAPI Response Message: "+printMap.get("errorText").toString());
+							"\tAPI Response Code: "+printMap.get("errorCode")
+  							+ "\n\tAPI Response Message: "+printMap.get("errorText"));
 					buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Error:" + e1.getMessage());
 				}
        	 }else {
@@ -401,7 +406,7 @@ public class VMScanLauncher{
 		QualysVMResponse statusResponse = apiClient.getScanResult(scanIdRef);
 		scanResult = statusResponse.getResponse();
 		if(webhookUrl != null && !StringUtils.isEmpty(webhookUrl)) {			
-			WebhookData = WebhookCriteria.getScanDataForWebhook(scanResult,subScanStatus,useEc2, ec2Id);
+			webhookData = WebhookCriteria.getScanDataForWebhook(scanResult,subScanStatus,useEc2, ec2Id);
 		}
 		return scanResult;
 	}// end of getScanResult
@@ -414,7 +419,7 @@ public class VMScanLauncher{
     		//parse result
    			Integer respCodeObj = response.getResponseCode();
    			if(respCodeObj == null || respCodeObj != 200 ) {
-   				String error = response.getErrorMessage().toString();
+   				String error = response.getErrorMessage();
    				buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");
    				logger.info("Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");
    				throw new AbortException("Error while fetching the scan result after scan launch. Server returned: " + error +". Please do retry after sometime.");   				
@@ -424,16 +429,16 @@ public class VMScanLauncher{
         			Node nNode = scanList.item(temp);
         			if (nNode.getNodeType() == Node.ELEMENT_NODE) {        				
 	                    Element eElement = (Element) nNode;
-	                    if (eElement.getElementsByTagName("DURATION") !=null) {
+	                    if (eElement.getElementsByTagName("DURATION").getLength() > 0) {
 	                    	this.duration = eElement.getElementsByTagName("DURATION").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("REF") !=null) {
+	                    if (eElement.getElementsByTagName("REF").getLength() > 0) {
 	                    	this.reference = eElement.getElementsByTagName("REF").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("TYPE") !=null) {
+	                    if (eElement.getElementsByTagName("TYPE").getLength() > 0) {
 	                    	this.scanType = eElement.getElementsByTagName("TYPE").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("STATE") !=null) {
+	                    if (eElement.getElementsByTagName("STATE").getLength() > 0) {
 	                    	this.scanStatus = eElement.getElementsByTagName("STATE").item(0).getTextContent().trim();	
 	                    }
 	                    if (eElement.getElementsByTagName("STATE").item(0).getTextContent().trim().equalsIgnoreCase("Finished")) {
@@ -478,7 +483,7 @@ public class VMScanLauncher{
     	this.scanNameResolved = this.scanName.replaceAll("(?i)\\[job_name\\]", job_name).replaceAll("(?i)\\[build_number\\]", build_no).replaceAll("(?i)\\[timestamp\\]", timestamp);   		
     	
     	// required POST parameters - name, hostIp, etc
-    	if(this.scanNameResolved == null || this.scanNameResolved.isEmpty()) {
+    	if(this.scanNameResolved.isEmpty()) {
     		throw new AbortException("Scan Name - Required parameter to launch scan is missing.");
     	} else {
     		vmScan.append(String.format("%s=%s&", "scan_title", Helper.urlEncodeUTF8(this.scanNameResolved.trim())));
@@ -501,7 +506,13 @@ public class VMScanLauncher{
     			vmScan.append(String.format("%s=%s&", "ip", Helper.urlEncodeUTF8(hostIp)));
         	}else {
         		throw new AbortException("Host IP - Required parameter to launch scan is missing.");        		
-        	}    		   		
+        	}
+    		if(network != null && !network.isEmpty()) {
+        		vmScan.append(String.format("%s=%s&", "ip_network_id", Helper.urlEncodeUTF8(network)));
+        	} else {
+        		logger.info("Network Name - Unauthorized user.");
+        	}
+
     	}// end of useHost if
     	
     	if (useEc2) {
@@ -554,8 +565,8 @@ public class VMScanLauncher{
 			// logger.info("POST responseCode: " + respCodeObj.toString());
    			buildLogger.println(new Timestamp(System.currentTimeMillis()) + " POST responseCode: " + respCodeObj.toString());
    			   			
-   			if(respCodeObj == null || respCodeObj != 200 ) {
-   				String error = response.getErrorMessage().toString();   				
+   			if(respCodeObj != 200 ) {
+   				String error = response.getErrorMessage();   				
    				logger.info("Server Response: " + error +". Please do retry after sometime.");
    				buildLogger.println(new Timestamp(System.currentTimeMillis()) + " Server Response: " + error +". Please do retry after sometime.");
    				throw new AbortException("Error while launching new scan. Server returned: " + error +". Please do retry after sometime.");
@@ -620,7 +631,9 @@ public class VMScanLauncher{
 		        		}
    					}	   						
 	   				return returnMap;
-   				}catch (Exception e) {   					
+   				} catch(RuntimeException e) {
+   		        	throw e;
+   		        } catch (Exception e) {   					
    					throw e;
    		    	} 
    			} // end of else
@@ -676,15 +689,21 @@ public class VMScanLauncher{
 	    	}
 	    	ProxyConfiguration proxyConfiguration = new ProxyConfiguration(auth.getUseProxy(), auth.getProxyServer(), auth.getProxyPort(), auth.getProxyUsername(), auth.getProxyPassword()); 
 	    	if (useHost) {
-	    		webhookPostData.add("Host Machine", WebhookData);
+	    		webhookPostData.add("Host Machine", webhookData);
 	    	}else {
-	    		webhookPostData.add("Cloud Instance (Ec2)", WebhookData);
+	    		webhookPostData.add("Cloud Instance (Ec2)", webhookData);
 	    	}
 	    	
 	    	if(!webhookPostData.isJsonNull() && webhookUrl != null && !StringUtils.isEmpty(webhookUrl)) {
 	    		Webhook wh = new Webhook(webhookUrl, gson.toJson(webhookPostData), buildLogger, proxyConfiguration);
 	    		wh.post();
 	    	}
+        } catch(RuntimeException e) {
+        	String error = " Exception while posting data to webhook. Error: "+ e.getMessage();
+        	buildLogger.println(new Timestamp(System.currentTimeMillis()) + error);
+        	logger.info(error);
+        	for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
         } catch(Exception e) {
         	String error = " Exception while posting data to webhook. Error: "+ e.getMessage();
         	buildLogger.println(new Timestamp(System.currentTimeMillis()) + error);

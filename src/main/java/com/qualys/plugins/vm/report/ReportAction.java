@@ -91,7 +91,7 @@ public class ReportAction implements Action {
     }
         
     public String getScanTarget() {
-    	return this.scanTarget.toString();
+    	return this.scanTarget;
     }
     
     public String getScanName() {
@@ -285,7 +285,7 @@ public class ReportAction implements Action {
     		//parse result
    			Integer respCodeObj = resp.getResponseCode();
    			if(respCodeObj == null || respCodeObj != 200 ) {
-   				String error = resp.getErrorMessage().toString();   				
+   				String error = resp.getErrorMessage();   				
    				logger.info("Error while fetching the scan result from report. Server returned: " + error +". Please do retry after sometime.");
    				throw new AbortException("Error while fetching the scan result from report. Server returned: " + error +". Please do retry after sometime.");   				
    			}else {
@@ -294,16 +294,16 @@ public class ReportAction implements Action {
         			Node nNode = scanList.item(temp);
         			if (nNode.getNodeType() == Node.ELEMENT_NODE) {        				
 	                    Element eElement = (Element) nNode;	   
-	                    if (eElement.getElementsByTagName("DURATION") !=null) {
+	                    if (eElement.getElementsByTagName("DURATION").getLength() > 0) {
 	                    	this.duration = eElement.getElementsByTagName("DURATION").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("REF") !=null) {
+	                    if (eElement.getElementsByTagName("REF").getLength() > 0) {
 	                    	this.reference = eElement.getElementsByTagName("REF").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("TYPE") !=null) {
+	                    if (eElement.getElementsByTagName("TYPE").getLength() > 0) {
 	                    	this.scanType = eElement.getElementsByTagName("TYPE").item(0).getTextContent().trim();	
 	                    }
-	                    if (eElement.getElementsByTagName("STATE") !=null) {
+	                    if (eElement.getElementsByTagName("STATE").getLength() > 0) {
 	                    	this.status = eElement.getElementsByTagName("STATE").item(0).getTextContent().trim();	
 	                    }
 	                    if (eElement.getElementsByTagName("STATE").item(0).getTextContent().trim().equalsIgnoreCase("Finished")) {
@@ -351,11 +351,11 @@ public class ReportAction implements Action {
 
 	@Override
 	public String getDisplayName() {
-		return "Qualys Report for " + this.scanTarget.toString();
+		return "Qualys Report for " + this.scanTarget;
 	}
 
 	@Override
 	public String getUrlName() {		
-		return "qualys_vm_scan_report_"+this.scanTarget.toString()+".html";
+		return "qualys_vm_scan_report_"+this.scanTarget+".html";
 	}
 }
