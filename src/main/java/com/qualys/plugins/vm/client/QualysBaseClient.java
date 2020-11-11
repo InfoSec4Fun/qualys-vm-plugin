@@ -1,6 +1,7 @@
 package com.qualys.plugins.vm.client;
 
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +9,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -51,9 +53,9 @@ class QualysBaseClient {
         return url;
     }
     
-    protected byte[] getJWTAuthHeader() {
-        String userPass = "username=" + this.auth.getUsername() + "&password=" + this.auth.getPassword().getPlainText() + "&token=true";
-        return userPass.getBytes();
+    protected byte[] getJWTAuthHeader() throws UnsupportedEncodingException {
+        String userPass = "username=" + java.net.URLEncoder.encode(this.auth.getUsername(), "UTF-8") + "&password=" + java.net.URLEncoder.encode(this.auth.getPassword().getPlainText(), "UTF-8") + "&token=true";
+        return userPass.getBytes("UTF-8");
     }
     // This class is used to prepare the credentials by encrypting them for Https request call.
     // This is used in QualysCSClient for [GET] or [POST] calls
@@ -64,7 +66,6 @@ class QualysBaseClient {
     }
     
     protected CloseableHttpClient getHttpClient() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-    	
     	RequestConfig config = RequestConfig.custom()
   	    	  .setConnectTimeout(this.timeout * 10000)
   	    	  .setConnectionRequestTimeout(this.timeout * 10000)
@@ -78,7 +79,7 @@ class QualysBaseClient {
     	clientBuilder.setDefaultRequestConfig(config);
     	clientBuilder.setDefaultCredentialsProvider(credentialsProvider);    	
     	
-    	if(this.auth.getProxyServer() != null && !this.auth.getProxyServer().isEmpty()) { 
+    	if(!this.auth.getProxyServer().isEmpty()) { 
     		final HttpHost proxyHost = new HttpHost(this.auth.getProxyServer(),this.auth.getProxyPort()); 	
     		final HttpRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxyHost);
     		clientBuilder.setRoutePlanner(routePlanner);
@@ -86,7 +87,7 @@ class QualysBaseClient {
     		String proxUsername = this.auth.getProxyUsername();
     		String proxPassword = this.auth.getProxyPassword().getPlainText();
             
-            if (proxUsername != null && !proxUsername.trim().isEmpty()) {
+            if (!proxUsername.trim().isEmpty()) {
                 System.out.println("Using proxy authentication (user=" + proxUsername + ") & its password.");
                 credentialsProvider.setCredentials(new AuthScope(proxyHost), 
                 								   new UsernamePasswordCredentials(proxUsername, proxPassword));

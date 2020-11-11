@@ -7,8 +7,10 @@ To run even after the build is marked as complete, override needsToRunAfterFinal
 package com.qualys.plugins.vm;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -85,6 +87,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     private String scanName;
     private String scannerName;
     private String optionProfile;
+    private String network;
     private String proxyServer;
     private int proxyPort;
     private String proxyCredentialsId;
@@ -105,7 +108,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     private String cvssBase;
     private boolean failByCvss = false;    
     private String excludeList;
-    private static String excludeBy;
+    private String excludeBy;
     private boolean doExclude;    
     private boolean evaluatePotentialVulns = false;
     private boolean failByPci = false;
@@ -239,6 +242,10 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     @DataBoundSetter
     public void setOptionProfile(String optionProfile) {this.optionProfile = optionProfile;}
 
+    public String getNetwork() {return network;}
+    @DataBoundSetter
+    public void setNetwork(String network) {this.network = network;}
+
     public String getProxyServer() {return proxyServer;}
 	@DataBoundSetter
 	public void setProxyServer(String proxyServer) {this.proxyServer = proxyServer;}
@@ -302,7 +309,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    	}else {
 		    	List<String> qids = Arrays.asList(this.qidList.split(","));
 		    	qids.replaceAll(String::trim);
-		    	JsonElement element = gson.toJsonTree(qids, new TypeToken<List<String>>() {}.getType());		    	
+		    	JsonElement element = gson.toJsonTree(qids, TypeToken.getParameterized(List.class, String.class).getType());		    	
 		    	failConditionsObj.add("qids", element);
 	    	}
     	}// end of failByQids
@@ -314,7 +321,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	    	}else {
 		    	List<String> cve = Arrays.asList(this.cveList.split(","));
 		    	cve.replaceAll(String::trim);
-		    	JsonElement element = gson.toJsonTree(cve, new TypeToken<List<String>>() {}.getType());
+		    	JsonElement element = gson.toJsonTree(cve, TypeToken.getParameterized(List.class, String.class).getType());
 		    	failConditionsObj.add("cve_id", element);
 	    	}
     	}// end of failByCves
@@ -347,13 +354,13 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     		if("cve_id".equals(excludeBy)) {
     			failConditionsObj.addProperty("excludeBy", "cve_id");
     			List<String> cves = Arrays.asList(this.excludeList.split(","));
-    	    	JsonElement element = gson.toJsonTree(cves, new TypeToken<List<String>>() {}.getType());
+    	    	JsonElement element = gson.toJsonTree(cves, TypeToken.getParameterized(List.class, String.class).getType());
     	    	failConditionsObj.add("excludeCVEs", element);
     		}
     		if("qid".equals(excludeBy)) {
     			failConditionsObj.addProperty("excludeBy", "qid");
     			List<String> qids = Arrays.asList(this.excludeList.split(","));
-    	    	JsonElement element = gson.toJsonTree(qids, new TypeToken<List<String>>() {}.getType());
+    	    	JsonElement element = gson.toJsonTree(qids, TypeToken.getParameterized(List.class, String.class).getType());
     	    	failConditionsObj.add("excludeQids", element);
     		}    		
     	}
@@ -372,7 +379,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 	
 	 @DataBoundConstructor
 	    public VMScanNotifier(String apiServer, String credsId, String hostIp, String ec2ConnDetails, String ec2Id, 
-	    		String scannerName, String scanName, String optionProfile, String proxyServer, 
+			String scannerName, String scanName, String optionProfile, String network, String proxyServer,
 	    		int proxyPort, String proxyCredentialsId, boolean useProxy, boolean useHost, boolean useEc2,
 	    		String pollingInterval, String vulnsTimeout, int bySev, boolean failBySev, boolean failByQids, 
 	    		boolean failByCves, String qidList, String cveList, boolean failByCvss, String byCvss, 
@@ -397,10 +404,10 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 		        this.proxyPort = proxyPort;
 		        this.proxyCredentialsId = proxyCredentialsId;
 	        }
-	                
 	        if(useHost) {
 	        	this.useHost = useHost;
 	        	this.hostIp = hostIp;
+	        	this.network = network;
 	        	}
 	        
 	        
@@ -476,7 +483,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         private static final String awsAccountId = "awsAccountId";
         private static final String utf8Error = "Provide valid UTF-8 string value.";
         private static final String displayName = "Scan host/instances with Qualys VM";
-        static JsonObject ctorNameList = new JsonObject();
+        private JsonObject ctorNameList = new JsonObject();
         Helper h = new Helper();
         
     	@Override
@@ -590,6 +597,8 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         		}else {
         			return FormValidation.error("Enter a valid port number!");
         		}
+        	} catch (RuntimeException e) {
+        		return FormValidation.error("Enter valid port number!");
         	} catch(Exception e) {
         		return FormValidation.error("Enter valid port number!");
         	}
@@ -713,21 +722,22 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         } // End of doCheckCveList FormValidation
         
         public FormValidation doCheckCvssBase(@QueryParameter String cvssBase) {
-        	try {
-        		if (cvssBase != null && !cvssBase.isEmpty()) {        			
-        			double cvssDouble = 0.0;
-        			try {
-        				cvssDouble = Double.parseDouble(cvssBase);
-    					if(cvssDouble < 0.0 || cvssDouble > 10.0) {
-    						return FormValidation.error("Enter a number in range of 0.0 to 10.0");
-    					}
-    				} catch (NumberFormatException e) {
-    					return FormValidation.error("Input is not a valid number. " + e.getMessage());        				    
-    				}        			
-        		}
-        	} catch(Exception e) {
-        		return FormValidation.error("Enter valid number!");
-        	}
+    		if (cvssBase != null && !cvssBase.isEmpty()) {        			
+    			double cvssDouble = 0.0;
+    			try {
+    				cvssDouble = Double.parseDouble(cvssBase);
+					if(cvssDouble < 0.0 || cvssDouble > 10.0) {
+						return FormValidation.error("Enter a number in range of 0.0 to 10.0");
+					}
+				} catch (NumberFormatException e) {
+					return FormValidation.error("Input is not a valid number. " + e.getMessage());        				    
+				} catch (RuntimeException e) {
+					return FormValidation.error("Enter valid number!");
+	        	}  catch(Exception e) {
+	        		return FormValidation.error("Enter valid number!");
+	        	}        			
+    		}
+        	
         	return FormValidation.ok();        	
         
         } // End of doCheckCvssBase FormValidation
@@ -783,6 +793,8 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     			} else {
     				return FormValidation.ok();
     			}
+        	} catch (RuntimeException e) {
+        		return FormValidation.error("Enter valid value!");
         	} catch(Exception e) {
         		return FormValidation.error("Enter valid value!");
         	} 
@@ -841,11 +853,11 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         @POST
         public ListBoxModel doFillScannerNameItems(@AncestorInPath Item item,@QueryParameter String platform,@QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, 
-        		@QueryParameter boolean useEc2, @QueryParameter boolean useHost) {
+        		@QueryParameter boolean useEc2, @QueryParameter boolean useHost, @QueryParameter String network) {
 
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	StandardListBoxModel model = new StandardListBoxModel();
-        	JsonObject scannerList = new JsonObject();
+        	JsonObject scannerList = null;
         	Option e1 = new Option("Select the scanner appliance", "External");
         	model.add(e1);
         	try {
@@ -860,13 +872,10 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
         			if(useEc2) {
             			logger.info("Fetching EC2 Scanner Names list ... ");
-            			scannerList = client.scannerName(false);
-            		} else if(useHost){
-            			logger.info("Fetching Scanner Names list ... ");
-            			scannerList = client.scannerName(true);
+            			scannerList = client.scannerName(false, network);
             		} else {
             			logger.info("Fetching Scanner Names list ... ");
-            			scannerList = client.scannerName(true);
+            			scannerList = client.scannerName(true, network);
             		}
         			for (String name : scannerList.keySet()) {    				   				
             			JsonObject jk = scannerList.get(name).getAsJsonObject();
@@ -892,11 +901,55 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         }// End of doFillScannerItems ListBoxModel
         
         @POST
+        public ListBoxModel doFillNetworkItems(@AncestorInPath Item item, @QueryParameter String platform, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
+        		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy) {
+        	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
+        	StandardListBoxModel model = new StandardListBoxModel();
+
+        	try {
+        		if(filledInputs(platform,apiServer, credsId, useProxy, proxyServer, proxyPort)) {
+        			int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
+        			String server = apiServer != null ? apiServer.trim() : "";
+            		if(!platform.equalsIgnoreCase("pcp")) {
+                		Map<String, String> platformObj = Helper.platformsList.get(platform);
+                		server = platformObj.get("url");
+                		logger.info("Using qualys API Server URL: " + apiServer);
+                	}
+        			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
+            		logger.info("Fetching Network list ... ");
+            		JsonArray networkList = client.getNetworkList();
+            		for (JsonElement n : networkList) {
+            			JsonObject network = n.getAsJsonObject();
+            			
+            			Option e = new Option(network.get("name").getAsString(), network.get("id").getAsString());
+            			model.add(e);
+            		}
+        		}// End of if
+        	} catch(Exception e) {
+        		logger.warning("Error to get Network list. " + e.getMessage());
+        		Option ee;
+        		if (e.getMessage().contains("UNAUTHORIZED ACCESS")) {
+        			ee = new Option("Enable the option to access custom network list for your subscription", "");
+        		} else if (e.getMessage().contains("Network not found")) {
+        			ee = new Option("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks", "");
+        		} else {
+        			ee = new Option(e.getMessage(), "");
+        		}
+        		
+    			model.add(ee);
+        	}
+        	model.sort(Helper.getOptionItemmsComparator());
+        	return model;
+        
+        } // End of doFillOptionProfileItems ListBoxModel
+
+
+        @POST
         public ListBoxModel doFillOptionProfileItems(@AncestorInPath Item item, @QueryParameter String platform, @QueryParameter String apiServer, @QueryParameter String credsId, @QueryParameter String proxyServer, 
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy) {
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	StandardListBoxModel model = new StandardListBoxModel();
-        	Set<String> nameList = new HashSet<String>();
+
         	Option e1 = new Option("Default scan option profile", "Initial Options");
         	model.add(e1);        	
         	try {
@@ -910,7 +963,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
                 	}
         			QualysVMClient client = h.getClient(useProxy, server, credsId, proxyServer, proxyPortInt, proxyCredentialsId, item);
             		logger.info("Fetching Option Profiles list ... ");
-            		nameList = client.optionProfiles();	        		
+            		Set<String> nameList = client.optionProfiles();	        		
             		for (String name : nameList) {
             			Option e = new Option(name, name);
             			model.add(e);	        		
@@ -973,7 +1026,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         	if(string != null && !string.isEmpty()) {
             	try 
             	{
-            	    byte[] bytes = string.getBytes(java.nio.charset.StandardCharsets.UTF_8);        	    
+            	    string.getBytes(java.nio.charset.StandardCharsets.UTF_8);        	    
             	} 
             	catch (Exception e){        			    		
     	    	    return true;
@@ -1013,18 +1066,23 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	try {
      	   MavenXpp3Reader reader = new MavenXpp3Reader();
             Model model;
-            if ((new File("pom.xml")).exists())
-              model = reader.read(new FileReader("pom.xml"));
+            if ((new File("pom.xml")).exists()) {
+            	InputStream inputStream = new FileInputStream("pom.xml");
+            	model = reader.read(new InputStreamReader(inputStream, "UTF-8"));
+            }
             else
               model = reader.read(
                 new InputStreamReader(
                 		VMScanNotifier.class.getResourceAsStream(
                     "/META-INF/maven/com.qualys.plugins/qualys-vm/pom.xml"
-                  )
+                  ), "UTF-8"
                 )
               );
             return model.getVersion();
-        }catch(Exception e) {
+        } catch (RuntimeException e) {
+        	logger.info("Exception while reading plugin version; Reason :" + e.getMessage());
+      	   	return "unknown";
+        } catch(Exception e) {
      	   logger.info("Exception while reading plugin version; Reason :" + e.getMessage());
      	   return "unknown";
         }
@@ -1040,7 +1098,10 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     		String version = getPluginVersion();
     		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" (version-"+ version +") started.");
     		logger.info(pluginName+" (version-"+ version +") started.");
-    	}catch(Exception e) {
+    	} catch (RuntimeException e) {
+    		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" started.");
+    		logger.info(pluginName+" started.");
+    	} catch(Exception e) {
     		taskListener.getLogger().println(new Timestamp(System.currentTimeMillis()) +" " +pluginName+" started.");
     		logger.info(pluginName+" started.");    		
     	}
@@ -1084,12 +1145,12 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	JsonObject instanceState = new JsonObject();
     	instanceState.addProperty("endpoint", "Unknown");
     	Helper h = new Helper();
-    	QualysAuth auth = new QualysAuth();
+    	QualysAuth auth = null;
     	boolean isFailConditionsConfigured = false;
-    	String instanceStatus = new String();
+    	String instanceStatus = "";
     	
     	Map<String, String> platformObj = Helper.platformsList.get(platform);
-    	String portalUrl = apiServer;
+
     	//set apiServer URL according to platform
     	if(!platform.equalsIgnoreCase("pcp")) {
     		setApiServer(platformObj.get("url"));
@@ -1154,7 +1215,6 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 		    		// Get state of connector
 		    		listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " Checking the state of connector: " + this.ec2ConnName);
 		    		String ec2ConnState = ctor.getCtorStatus(this.ec2ConnId, true);	    		
-	    		
 		    		// log message for checkbox status
 	    			String logMsg = " Run connector checkbox: " +( runConnector ? "checked" : "unchecked");
 	    			logger.info(logMsg);
@@ -1191,7 +1251,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     				instanceState.get("endpoint").getAsString(), 
         			scannerName, scanName, optionProfile, isFailConditionsConfigured, pollingInterval, 
         			vulnsTimeout, getCriteriaAsJsonObject(), useHost, useEc2, 
-        			auth, webhookUrl, byCvss);    		
+        			auth, webhookUrl, byCvss, network);
         	
         	launcher.getAndProcessLaunchScanResult();    	
             listener.getLogger().println(new Timestamp(System.currentTimeMillis()) + " "+pluginName+" scan task - Finished.");        

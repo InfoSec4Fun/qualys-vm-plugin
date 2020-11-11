@@ -104,6 +104,10 @@
 			checkbx1.checked = true;
 			if(document.getElementsByName("_.hostIp")[0] != undefined)
 				document.getElementsByName("_.hostIp")[0].parentNode.parentNode.style.display='table-row';
+				
+			if(document.getElementsByName("_.network")[0] != undefined)
+				document.getElementsByName("_.network")[0].parentNode.parentNode.style.display='table-row';
+				
 			//updateOptionalBlock(checkbx1,true);	
 		}
 	
@@ -196,7 +200,7 @@
     <!-- API login section -->
      <f:section title="API Login">
     	<f:block> <div> Provide details for accessing the Qualys VM API.  </div> <br /> </f:block>
-	    <f:entry title="Your Qualys Portal" field="platform" help="/plugin/qualys-vm/help/platform.html">
+	    <f:entry title="Your Qualys Portal:" field="platform" help="/plugin/qualys-vm/help/platform.html">
 	        <f:select name="platform" style="width: 35%;" id="platform" />
 	    </f:entry>
 	    <f:block >
@@ -205,7 +209,7 @@
 		    </f:entry>
 	    </f:block >
 	    
-	    <f:entry field="credsId" title="* ${%Credentials}" help="/plugin/qualys-vm/help/credentialsId.html">
+	    <f:entry field="credsId" title="* ${%Credentials}:" help="/plugin/qualys-vm/help/credentialsId.html">
 			<c:select id="credsId" />
 		</f:entry>
 	    
@@ -234,7 +238,7 @@
     		<div>Provide information required to launch the scan</div>
     	</f:block>
     	 <br />
-    	<f:entry title="* Name" field="scanName" help="/plugin/qualys-vm/help/scanName.html">
+    	<f:entry title="* Scan Title:" field="scanName" help="/plugin/qualys-vm/help/scanTitle.html">
 	        <f:textbox style="width: 50%; min-width: 320px;" default="[job_name]_jenkins_build_[build_number]" />
 	    </f:entry>
 	    <f:block>
@@ -249,6 +253,11 @@
 				        		<f:textbox id="hostIp" default="0.0.0.0"/>
 				   			</f:entry>
 			   			</f:block>
+				   		<f:block>
+		                 	<f:entry title="Network:" field="network" name="network" help="/plugin/qualys-vm/help/network.html">
+		                     	<f:select fillDependsOn="apiServer credsId" style="width: 100%; min-width: 100%;" />
+							</f:entry>
+	                   	</f:block>
 			    	</div>
 			    </f:block> 
 			 </f:optionalBlock>
@@ -281,7 +290,7 @@
 		    </f:block>
 		    <f:block> 
 	   			<f:entry title="* Scanner Name:" field="scannerName" help="/plugin/qualys-vm/help/scannerName.html">
-	    			<f:select fillDependsOn="apiServer credsId useEc2 useHost" style="width: 100%; min-width: 100%;" />
+	    			<f:select fillDependsOn="apiServer credsId useEc2 useHost network" style="width: 100%; min-width: 100%;" />
 	    		</f:entry>
 	   		</f:block>
 		</f:block>

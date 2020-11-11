@@ -26,7 +26,7 @@ public class QualysCriteria {
 	boolean failCheck = true;
 	private final static Logger logger = Logger.getLogger(Helper.class.getName());
 	
-	boolean checkPotentialVulns, sevStaus = true;
+	boolean sevStaus = true;
 	ArrayList<Integer> qidExcludeList =  new ArrayList<Integer>(0);
 	ArrayList<String> cveExcludeList  = new ArrayList<String>(0);
 	String excludeBy = "";
@@ -42,8 +42,6 @@ public class QualysCriteria {
 	ArrayList<Double> cvss3_baseFound = new ArrayList<Double>(0);
 	ArrayList<Double> base2GreaterThan = new ArrayList<Double>(0);
 	ArrayList<Double> base3GreaterThan = new ArrayList<Double>(0);
-	Set<String> exclutableSet = new HashSet<String>();
-	Set<Double> exclutableSetD = new HashSet<Double>();
 	private int sizeBeforeExclude = 0;
 	private int sizeAfterExclude = 0;
 	int[] sevFound = new int[6];
@@ -207,7 +205,11 @@ public class QualysCriteria {
 			} else {
 				logger.info("'failConditions' not configured.");
 			}
-		}catch (Exception e) {
+		} catch(RuntimeException e) {
+			logger.info("Exception while setting Qualys criteria. Error: " + e.getMessage());
+			for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+        } catch (Exception e) {
 			logger.info("Exception while setting Qualys criteria. Error: " + e.getMessage());
 			for (StackTraceElement traceElement : e.getStackTrace())
                 logger.info("\tat " + traceElement);			
@@ -220,9 +222,8 @@ public class QualysCriteria {
 		this.configuredCves = new ArrayList<String>();
 		this.severityMap = new HashMap<Integer, Integer>();
 		this.cveList = new ArrayList<String>();
-		this.cvssBase = new Double(0.0);
-		this.cvssBase3 = new Double(0.0);
-		this.checkPotentialVulns = false;
+		this.cvssBase = Double.valueOf(0.0);
+		this.cvssBase3 = Double.valueOf(0.0);
 		this.returnObject = new JsonObject();
 		JsonObject exclude = new JsonObject();
         exclude.add("exclude", null);
@@ -368,28 +369,30 @@ public class QualysCriteria {
 		}
 		
 		// Iterate over each JSON object in the List
-		for (JsonElement vuln : getDataInArray) {
-			JsonObject scanObject = vuln.getAsJsonObject();
-			
-			if (
-				scanObject.has("type") && // Check if the JsonObject has type
-					(
-					 // Check if the JsonObject has type:Vuln or ...
-					 scanObject.get("type").getAsString().equalsIgnoreCase("vuln") || 
+		if (getDataInArray != null) {
+			for (JsonElement vuln : getDataInArray) {
+				JsonObject scanObject = vuln.getAsJsonObject();
+				
+				if (
+					scanObject.has("type") && // Check if the JsonObject has type
 						(
-							// Check if the evaluatePotentialVulns and JsonObject has type:Practice
-							evaluatePotentialVulns == true && scanObject.get("type").getAsString().equalsIgnoreCase("practice")
+						 // Check if the JsonObject has type:Vuln or ...
+						 scanObject.get("type").getAsString().equalsIgnoreCase("vuln") || 
+							(
+								// Check if the evaluatePotentialVulns and JsonObject has type:Practice
+								evaluatePotentialVulns == true && scanObject.get("type").getAsString().equalsIgnoreCase("practice")
+							)
 						)
-					)
-				) {
-					dataFound(scanObject);								
-				}// End of checking type & Practice or Vuln			
-		}// End of for qids, severtities, cves, cvss
+					) {
+						dataFound(scanObject);								
+					}// End of checking type & Practice or Vuln			
+			}// End of for qids, severtities, cves, cvss
+		}
 
 		// Evaluate found pci_vuln
 		if(!this.failByPci) {
 			returnObject.add("pci_vuln", null);			
-		}else if(this.failByPci && pciCount == 0) {
+		}else if(pciCount == 0) {
 			this.setResult(pciCount, pciStatus, "pci_vuln", "yes");
 		}else {
 			pciStatus = false;
@@ -641,35 +644,37 @@ public class QualysCriteria {
                 logger.info("\tat " + traceElement);			
 		}
 
-		for (JsonElement vuln : getDataInArray) {
-			JsonObject vulnObject = vuln.getAsJsonObject();
-			if (vulnObject.has("type") && 
-					(vulnObject.get("type").getAsString().equalsIgnoreCase("Vuln") || 
-					 vulnObject.get("type").getAsString().equalsIgnoreCase("Practice"))) {
-				if (this.excludeBy.equals("qid") && vulnObject.has("qid")) {
-					int qid = vulnObject.get("qid").getAsInt();
-					if (!this.qidExcludeList.contains(qid)) {
-						includedVulns.add(vuln);
-					}
-				} else if (this.excludeBy.equals("cve_id") && vulnObject.has("qid")) {					
-					int countOfCvesInExcludeList = 0;				
-					if (vulnObject.has("cve_id") && !vulnObject.get("cve_id").isJsonNull()) {
-						newList = Arrays.asList(vulnObject.get("cve_id").getAsString().split(","));
-			    		newList.replaceAll(String::trim);
-			    		for (String s: newList) {
-			    			if (this.cveExcludeList.contains(s)) {
-								countOfCvesInExcludeList++;
-							}
-			    		}// end of for
-			    		if(countOfCvesInExcludeList < newList.size()) {
+		if (getDataInArray != null) {
+			for (JsonElement vuln : getDataInArray) {
+				JsonObject vulnObject = vuln.getAsJsonObject();
+				if (vulnObject.has("type") && 
+						(vulnObject.get("type").getAsString().equalsIgnoreCase("Vuln") || 
+						 vulnObject.get("type").getAsString().equalsIgnoreCase("Practice"))) {
+					if (this.excludeBy.equals("qid") && vulnObject.has("qid")) {
+						int qid = vulnObject.get("qid").getAsInt();
+						if (!this.qidExcludeList.contains(qid)) {
 							includedVulns.add(vuln);
-						}// end of counter comparison if
-					} else {
-						includedVulns.add(vuln);						
-			    	}// End of single CVE else
-				}// end of else if of cve_id
-			}
-		}// end of getDataInArray for 
+						}
+					} else if (this.excludeBy.equals("cve_id") && vulnObject.has("qid")) {					
+						int countOfCvesInExcludeList = 0;				
+						if (vulnObject.has("cve_id") && !vulnObject.get("cve_id").isJsonNull()) {
+							newList = Arrays.asList(vulnObject.get("cve_id").getAsString().split(","));
+				    		newList.replaceAll(String::trim);
+				    		for (String s: newList) {
+				    			if (this.cveExcludeList.contains(s)) {
+									countOfCvesInExcludeList++;
+								}
+				    		}// end of for
+				    		if(countOfCvesInExcludeList < newList.size()) {
+								includedVulns.add(vuln);
+							}// end of counter comparison if
+						} else {
+							includedVulns.add(vuln);						
+				    	}// End of single CVE else
+					}// end of else if of cve_id
+				}
+			}// end of getDataInArray for 
+		}
 		returnVulns.add("data", includedVulns);
 		return returnVulns;
 	} // end of excludeVulns

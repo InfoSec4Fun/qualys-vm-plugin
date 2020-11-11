@@ -44,7 +44,7 @@ public class WebhookCriteria {
 				JsonObject qidObj = jsonObj.get("qids").getAsJsonObject();
 				JsonObject qidNewObj = null;
 				if(! qidObj.get("result").getAsBoolean()) {
-					if(qidNewObj == null) qidNewObj = new JsonObject();
+					qidNewObj = new JsonObject();
 					qidNewObj.add("configured", qidObj.get("configured"));
 					qidNewObj.add("found", qidObj.get("found"));
 				}
@@ -59,8 +59,8 @@ public class WebhookCriteria {
 			if (!cve_config.equalsIgnoreCase("0")) {
 				JsonObject cveObj = jsonObj.get("cveIds").getAsJsonObject();
 				JsonObject cveNewObj = null;
-				if(! cveObj.get("result").getAsBoolean()) {
-					if(cveNewObj == null) cveNewObj = new JsonObject();
+				if(!cveObj.get("result").getAsBoolean()) {
+					cveNewObj = new JsonObject();
 					cveNewObj.add("configured", cveObj.get("configured"));
 					cveNewObj.add("found", cveObj.get("found"));
 				}
@@ -79,8 +79,8 @@ public class WebhookCriteria {
 			if (!jsonObj.get("pci_vuln").isJsonNull()) {
 				JsonObject pciObj = jsonObj.get("pci_vuln").getAsJsonObject();
 				JsonObject pciNewObj = null;
-				if(! pciObj.get("result").getAsBoolean()) {
-					if(pciNewObj == null) pciNewObj = new JsonObject();
+				if(!pciObj.get("result").getAsBoolean()) {
+					pciNewObj = new JsonObject();
 					pciNewObj.add("configured", pciObj.get("configured"));
 					pciNewObj.add("found", pciObj.get("found"));
 				}
@@ -88,7 +88,11 @@ public class WebhookCriteria {
 					returnObj.add("pci", pciNewObj);
 				}
 			}
-    	}catch(Exception e) {
+    	} catch(RuntimeException e) {
+    		logger.info("Error while making Fail Reason Object: " + e.getMessage());
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+        } catch(Exception e) {
     		logger.info("Error while making Fail Reason Object: " + e.getMessage());
     		for (StackTraceElement traceElement : e.getStackTrace())
                 logger.info("\tat " + traceElement);    		
@@ -101,7 +105,7 @@ public class WebhookCriteria {
 		JsonObject cvssObj = jsonObj.get(cvssVersion).getAsJsonObject();
 		JsonObject cvssNewObj = null;
 		if(! cvssObj.get("result").getAsBoolean()) {
-			if(cvssNewObj == null) cvssNewObj = new JsonObject();
+			cvssNewObj = new JsonObject();
 			cvssNewObj.add("configured", cvssObj.get("configured"));
 			cvssNewObj.add("found", cvssObj.get("found"));
 			if (cvssVersion.equalsIgnoreCase("cvss_base")) {
@@ -214,7 +218,11 @@ public class WebhookCriteria {
 			}else {
 				webhookData.addProperty("active_hosts", "0");
 			}		
-    	} catch (Exception e) {
+    	} catch(RuntimeException e) {
+    		logger.info("Excaption while getting scan data for webhook. Error: " + e.getMessage());
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+        } catch (Exception e) {
     		logger.info("Excaption while getting scan data for webhook. Error: " + e.getMessage());
     		for (StackTraceElement traceElement : e.getStackTrace())
                 logger.info("\tat " + traceElement);    		

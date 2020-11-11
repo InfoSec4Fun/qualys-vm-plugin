@@ -2,7 +2,9 @@ package com.qualys.plugins.vm.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -19,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
@@ -81,9 +84,7 @@ public class Helper {
     	platform3.put("name", "US Platform 3"); platform3.put("code", "US_PLATFORM_3"); platform3.put("url", "https://qualysapi.qg3.apps.qualys.com"); 
     	platform3.put("portal", "https://qualysguard.qg3.apps.qualys.com"); aList.put("US_PLATFORM_3", platform3);
     	
-    	Map<String, String> platform4 = new HashMap <String, String>();
-    	platform4.put("name", "US Platform 4"); platform4.put("code", "US_PLATFORM_4"); platform4.put("url", "https://qualysapi.qg4.apps.qualys.com");
-    	platform4.put("portal", "https://qualysguard.qg4.apps.qualys.com"); aList.put("US_PLATFORM_4", platform4);
+		// Removed US Platform 4.
     	
     	Map<String, String> platform5 = new HashMap <String, String>();
     	platform5.put("name", "EU Platform 1"); platform5.put("code", "EU_PLATFORM_1"); platform5.put("url", "https://qualysapi.qualys.eu");
@@ -128,7 +129,7 @@ public class Helper {
     	String user = null, pass = null, proxyUser = null, proxyPass = null;
     	try{
 			ArrayList<String> cred = getCredentails(credsId, item);
-			if(cred != null && !cred.isEmpty()) {
+			if(!cred.isEmpty()) {
 				user = cred.get(0);
 				pass = cred.get(1);
 			}			
@@ -136,7 +137,7 @@ public class Helper {
 	    	
 	    	if(useProxy) {
 				ArrayList<String> proxCreds = getCredentails(proxyCredentialsId, item);				
-				if(proxCreds != null && !proxCreds.isEmpty()) {
+				if(!proxCreds.isEmpty()) {
 					proxyUser = proxCreds.get(0);
 					proxyPass = proxCreds.get(1);					
 				} 
@@ -313,17 +314,28 @@ public class Helper {
         }
     }
 
-	public static void createNewFile(String rootDir, String filename, String content, PrintStream buildLogger) {
+	public static void createNewFile(String rootDir, String filename, String content, PrintStream buildLogger) throws UnsupportedEncodingException {
   	  	   	
     	File f = new File(rootDir + File.separator + filename + ".json");
 	    if(!f.getParentFile().exists()){
-	        f.getParentFile().mkdirs();
+	    	boolean result = f.getParentFile().mkdirs();
+	    	if (result) {
+	    		logger.info("Directory path created: " + rootDir + File.separator);
+	    	} else {
+	    		logger.info("Failed to create directory path: " + rootDir + File.separator);
+	    	}
 	    }
 
 	    if(!f.exists()){
 	        try {
-	            f.createNewFile();
-	            logger.info("JSON file created: " + f.toString());
+	        	boolean result = f.createNewFile();
+	        	if (result) {
+	        		logger.info("JSON file created: " + f.toString());
+	        	} else {
+	        		String error = " Failed creating file " + filename;
+		            buildLogger.println(new Timestamp(System.currentTimeMillis()) + error);
+		            logger.info(error);
+	        	}
 	        } catch (Exception e) {
 	        	String error = " Failed creating file " + filename + ", reason =" + e.getMessage();
 	            buildLogger.println(new Timestamp(System.currentTimeMillis()) + error);
@@ -332,7 +344,7 @@ public class Helper {
 	    }
 	    try {
 	        File dir = new File(f.getParentFile(), f.getName());
-	        PrintWriter writer = new PrintWriter(dir);
+	        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(dir), "UTF-8"));
 	        writer.print(content);
 	        writer.close();
 	    } catch (FileNotFoundException e) {
@@ -344,10 +356,10 @@ public class Helper {
 	    }
     }
 	
-	private static Comparator<Option> OptionItemmsComparator = new Comparator<Option>() {
+	private static Comparator<Option> optionItemmsComparator = new Comparator<Option>() {
         @Override
         public int compare(Option e1, Option e2) {
-            return e1.name.toLowerCase().compareTo(e2.name.toLowerCase());
+            return e1.name.toLowerCase(Locale.ENGLISH).compareTo(e2.name.toLowerCase(Locale.ENGLISH));
         }
     };
 
@@ -369,7 +381,7 @@ public class Helper {
     		String final_content = gson.toJson(respObj);
     		try {
     	        File dir = new File(f.getParentFile(), f.getName());
-    	        PrintWriter writer = new PrintWriter(dir);
+    	        PrintWriter writer = new PrintWriter(dir, "UTF-8");
     	        writer.print(final_content);
     	        writer.close();
     	    } catch (FileNotFoundException e) {
@@ -497,7 +509,11 @@ public class Helper {
 				}// End of for
 			}
 			respObj.add("data", arrTemp);			
-    	}catch (Exception e) {
+    	} catch(RuntimeException e) {
+    		logger.info("Exception while removing Big Data key:value fields. Error: " + e.getMessage());
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+        } catch (Exception e) {
     		logger.info("Exception while removing Big Data key:value fields. Error: " + e.getMessage());
     		for (StackTraceElement traceElement : e.getStackTrace())
                 logger.info("\tat " + traceElement);    		    		
@@ -509,13 +525,13 @@ public class Helper {
 	 * @return the optionItemmsComparator
 	 */
 	public static Comparator<Option> getOptionItemmsComparator() {
-		return OptionItemmsComparator;
+		return optionItemmsComparator;
 	}
 
 	/**
 	 * @param optionItemmsComparator the optionItemmsComparator to set
 	 */
 	public static void setOptionItemmsComparator(Comparator<Option> optionItemmsComparator) {
-		OptionItemmsComparator = optionItemmsComparator;
+		Helper.optionItemmsComparator = optionItemmsComparator;
 	}
 }// end of Helper class

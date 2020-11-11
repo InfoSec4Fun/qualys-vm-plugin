@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.SocketException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,6 +75,7 @@ public class QualysVMClient extends QualysBaseClient {
         this.apiMap.put("scannerName", "/api/2.0/fo/appliance/?action=list&output_mode=full"); // [GET]
         this.apiMap.put("ec2ScannerName", "/api/2.0/fo/appliance/?action=list&platform_provider=ec2&include_cloud_info=1&output_mode=full"); // [GET]
         this.apiMap.put("optionProfilesVm", "/api/2.0/fo/subscription/option_profile/vm/?action=list"); // [GET]
+        this.apiMap.put("network", "/api/2.0/fo/network/?action=list"); // [GET]
         this.apiMap.put("optionProfilesPci", "/api/2.0/fo/subscription/option_profile/pci/?action=list"); // [GET]
         this.apiMap.put("launchVMScan", "/api/2.0/fo/scan/?action=launch"); // [POST]
         this.apiMap.put("cancelVmScan", "/api/2.0/fo/scan/?action=cancel"); // [POST]
@@ -87,7 +89,7 @@ public class QualysVMClient extends QualysBaseClient {
     
     /*API calling methods*/
 
-    public JsonObject scannerName(boolean useHost) throws Exception {
+    public JsonObject scannerName(boolean useHost, String networkId) throws Exception {
     	logger.info("Scanner Name is accepted and getting the DOC.");
     	NodeList dataList = null;
     	Document response = null;    	
@@ -98,11 +100,17 @@ public class QualysVMClient extends QualysBaseClient {
     	try {
 	    	while(retry < 3) {
 	    		logger.info("Retrying Scanner Name API call: " + retry);
+	    		String endPoint;
 	    		if (useHost) {
-	    			resp = this.get(this.apiMap.get("scannerName"), false);
+	    			endPoint = this.apiMap.get("scannerName");
 	    		} else {
-	    			resp = this.get(this.apiMap.get("ec2ScannerName"), false);
+	    			endPoint = this.apiMap.get("ec2ScannerName");
 	    		}
+	    		if (!networkId.isEmpty()) {
+	    			endPoint = endPoint + "&network_id="+networkId;
+	    		}
+	    		
+	    		resp = this.get(endPoint, false);
 				logger.info("Response code received for Scanner Name API call:" + resp.getResponseCode());			
 				response = resp.getResponseXml();
 				if (resp.getResponseCode() == 401) {
@@ -110,7 +118,7 @@ public class QualysVMClient extends QualysBaseClient {
 	    		}else if (resp.getResponseCode() != 200) {
 	    			throw new Exception(exceptionWhileToget+" the Scanner list."+responseCode+resp.getResponseCode()+conRefuse);
 	    		}
-				if(resp != null && resp.getResponseCode() == 200) {					
+				if(resp.getResponseCode() == 200) {					
 					if(useHost) {
 						scannerList = getScannerDetails(response, false);		
 					} else {
@@ -151,13 +159,14 @@ public class QualysVMClient extends QualysBaseClient {
     
     public Set<String> optionProfiles() throws Exception {
     	logger.info("Option Profile is accepted and getting the DOC.");    	   	
-    	Set<String> nameList = new HashSet<>(), nameListVM = new HashSet<>(), nameListPCI = new HashSet<>();
+    	Set<String> nameList = new HashSet<>(), nameListVM = null, nameListPCI = null;
     	int retryVM = 0, retryPCI = 0;
     	try {
     		nameListVM = getList(retryVM, "Option Profile VM", "optionProfilesVm");
     		nameList.addAll(nameListVM);
     		nameListPCI = getList(retryPCI, "Option Profile PCI", "optionProfilesPci");
     		nameList.addAll(nameListPCI);
+    		
     	}
 		catch (Exception e) {
 			logger.info("ERROR: " + e.getMessage());
@@ -165,8 +174,7 @@ public class QualysVMClient extends QualysBaseClient {
 				nameList.add("ERROR: " + e.getMessage());
 			}
 		}
-	
-        return nameList;
+    	return nameList;
     }//End of optionProfiles
     
     public QualysVMResponse launchVmScan(String requestData) throws Exception {
@@ -280,21 +288,23 @@ public class QualysVMClient extends QualysBaseClient {
 
 	private CloseableHttpResponse getAuthToken() throws Exception {
 		logger.info("Generating Auth Token...");
-		String output_msg = "";
+		StringBuilder output_msg = new StringBuilder();
 		int timeInterval = 0;
 		CloseableHttpResponse response = null;
 		while (timeInterval < this.retryCount) {
-			output_msg = "";
+			InputStreamReader isr = null;
+			BufferedReader br = null;
 			try {
 				response = this.postTestConnection(this.apiMap.get("getAuth"));
 				if (response.getEntity() != null) {
-					BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+					isr = new InputStreamReader(response.getEntity().getContent(), "UTF-8");
+					br = new BufferedReader(isr);
 					String output;
 					while ((output = br.readLine()) != null) {
-						output_msg += output;
+						output_msg.append(output);
 					}
 				}
-				this.tmp_token = output_msg;
+				this.tmp_token = output_msg.toString();
 				logger.info("Fetching auth token: Response code: " + response.getStatusLine().getStatusCode());
 				break;
 			} catch (SocketException e) {
@@ -311,7 +321,7 @@ public class QualysVMClient extends QualysBaseClient {
 				if (timeInterval < this.retryCount) {
 					try {
 						logger.info("Retry fetching auth token ...");
-						Thread.sleep(this.retryInterval * 1000);
+						Thread.sleep((long)this.retryInterval * 1000);
 					} catch (Exception e1) {
 						logger.info("Exception : " + e1);
 						throw e1;
@@ -320,7 +330,14 @@ public class QualysVMClient extends QualysBaseClient {
 					throw e;
 				}
 
-			}
+			} finally {
+				if (br != null) {
+	    			br.close();
+	    		}
+				if (isr != null) {
+					isr.close();
+				}
+			} 
 		}
 		return response;
 	}
@@ -328,7 +345,7 @@ public class QualysVMClient extends QualysBaseClient {
 	private boolean validateSubscription(String jwt) {
 		String[] jwtToken = jwt.split("\\.");
 		Base64.Decoder decoder = Base64.getDecoder();
-		String djwtToken = new String(decoder.decode(jwtToken[1]));
+		String djwtToken = new String(decoder.decode(jwtToken[1]), StandardCharsets.UTF_8);
 		Gson gson = new Gson();
 		JsonObject decodedjwtToken = gson.fromJson(djwtToken, JsonObject.class);
 		if (decodedjwtToken.has("modulesAllowed")) {
@@ -356,7 +373,9 @@ public class QualysVMClient extends QualysBaseClient {
 			logger.info("JWT Auth Header Request To: " + br.getContent().toString());
 			response = httpclient.execute(postRequest);
 			logger.info("Post request status: " + response.getStatusLine().getStatusCode());
-		} catch (Exception e) {
+		} catch(RuntimeException e) {
+	        throw e;
+	    } catch (Exception e) {
 			throw e;
 		}
 		return response;
@@ -378,13 +397,13 @@ public class QualysVMClient extends QualysBaseClient {
 				resp = this.post(this.apiMap.get("getConnector"),"","");			
 				logger.info("Response code received for Connector Name API call:" + resp.getResponseCode());			
 				response = resp.getResponseXml();
-				if(resp != null && resp.getResponseCode() == 200) {					
+				if(resp.getResponseCode() == 200) {					
 					NodeList responseCode = response.getElementsByTagName("responseCode");					
 					if(responseCode.item(0).getTextContent().equalsIgnoreCase("SUCCESS")) {
-		        		NodeList applinaceList = response.getElementsByTagName("AwsAssetDataConnector");
-		        		logger.info("Connector List lenght - " + String.valueOf(applinaceList.getLength()));
-		        		for (int temp = 0; temp < applinaceList.getLength(); temp++) {	        			
-		        			Node nNode = applinaceList.item(temp);
+		        		NodeList applianceList = response.getElementsByTagName("AwsAssetDataConnector");
+		        		logger.info("Connector List length - " + String.valueOf(applianceList.getLength()));
+		        		for (int temp = 0; temp < applianceList.getLength(); temp++) {
+		        			Node nNode = applianceList.item(temp);
 		        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 			                    Element eElement = (Element) nNode;
 			                    //Populate all the connectors
@@ -490,10 +509,10 @@ public class QualysVMClient extends QualysBaseClient {
 				logger.info("Response code received for run Connector API call:" + resp.getResponseCode());			
 				response = resp.getResponseXml();
 				connectorState.addProperty("request", resp.getRequest());
-				if(resp != null && resp.getResponseCode() == 200) {					
-	        		NodeList applinaceList = response.getElementsByTagName("AwsAssetDataConnector");	        		
-	        		for (int temp = 0; temp < applinaceList.getLength(); temp++) {	        			
-	        			Node nNode = applinaceList.item(temp);
+				if(resp.getResponseCode() == 200) {					
+	        		NodeList applianceList = response.getElementsByTagName("AwsAssetDataConnector");
+	        		for (int temp = 0; temp < applianceList.getLength(); temp++) {
+	        			Node nNode = applianceList.item(temp);
 	        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 		                    Element eElement = (Element) nNode;		                    
 	                    	if (!(eElement.getElementsByTagName("connectorState").getLength() > 0)) {
@@ -545,7 +564,7 @@ public class QualysVMClient extends QualysBaseClient {
     	JsonObject connectorState = new JsonObject();
     	connectorState.addProperty("request", "");
     	QualysVMResponse resp = new QualysVMResponse();
-    	JsonObject state = new JsonObject();
+
     	int retry = 0;
     	try {
 	    	while(retry < 3) {
@@ -554,10 +573,10 @@ public class QualysVMClient extends QualysBaseClient {
 				logger.info("Response code received for run Connector API call:" + resp.getResponseCode());			
 				response = resp.getResponseXml();
 				connectorState.addProperty("request", resp.getRequest());
-				if(resp != null && resp.getResponseCode() == 200) {					
-	        		NodeList applinaceList = response.getElementsByTagName("AssetDataConnector");	        		
-	        		for (int temp = 0; temp < applinaceList.getLength(); temp++) {	        			
-	        			Node nNode = applinaceList.item(temp);
+				if(resp.getResponseCode() == 200) {					
+	        		NodeList applianceList = response.getElementsByTagName("AssetDataConnector");
+	        		for (int temp = 0; temp < applianceList.getLength(); temp++) {
+	        			Node nNode = applianceList.item(temp);
 	        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 		                    Element eElement = (Element) nNode;		                    
 	                    	if (!(eElement.getElementsByTagName("connectorState").getLength() > 0)) {
@@ -631,9 +650,9 @@ public class QualysVMClient extends QualysBaseClient {
 		    	state.addProperty("requestBody", resp.getRequestBody());
 		    	state.addProperty("requestParam", resp.getRequestParam());		    	
 		    	
-				if(resp != null && resp.getResponseCode() == 200) {					
+				if(resp.getResponseCode() == 200) {					
 					NodeList serviceResponse = response.getElementsByTagName("ServiceResponse");
-					NodeList applinaceList = response.getElementsByTagName("Ec2AssetSourceSimple");
+					NodeList applianceList = response.getElementsByTagName("Ec2AssetSourceSimple");
 	        		for (int temp = 0; temp < serviceResponse.getLength(); temp++) {	        			
 	        			Node nNode = serviceResponse.item(temp);
 	        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -650,8 +669,8 @@ public class QualysVMClient extends QualysBaseClient {
 	        			}// End of if
 	        		} 
 	        		
-	        		for (int temp = 0; temp < applinaceList.getLength(); temp++) {	        			
-	        			Node nNode = applinaceList.item(temp);
+	        		for (int temp = 0; temp < applianceList.getLength(); temp++) {
+	        			Node nNode = applianceList.item(temp);
 	        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 		                    Element eElement = (Element) nNode;		                    	                    	
 	                    	if (!(eElement.getElementsByTagName("instanceState").getLength() > 0)) {
@@ -824,11 +843,11 @@ public class QualysVMClient extends QualysBaseClient {
 				uri = url.toString();
 			}
 			if(listener!=null)
-				listener.getLogger().println("Making POST Request: " + uri.toString());
-			logger.info("Making POST Request: " + uri.toString());
-			apiResponse.setRequest(uri.toString());
+				listener.getLogger().println("Making POST Request: " + uri);
+			logger.info("Making POST Request: " + uri);
+			apiResponse.setRequest(uri);
 			httpclient = this.getHttpClient();
-			HttpPost postRequest = new HttpPost(uri.toString());
+			HttpPost postRequest = new HttpPost(uri);
 			postRequest.addHeader("accept", "application/xml");
 			postRequest.addHeader("X-Requested-With", "Qualys");
 			postRequest.addHeader("Authorization", "Basic " + this.getBasicAuthHeader());
@@ -889,7 +908,7 @@ public class QualysVMClient extends QualysBaseClient {
 						msg = doc.getElementsByTagName("TEXT").item(0).getTextContent().trim();
 					}
 				}
-				if (msg != "") {
+				if (!msg.isEmpty()) {
 					throw new Exception("QualysVMResponse POST method." + responseCode + apiResponse.getResponseCode() + " Bad request; Error: " + msg + ".");
 				}
 				else {
@@ -926,11 +945,45 @@ public class QualysVMClient extends QualysBaseClient {
         }        
         return apiResponse;
     }// End of QualysVMResponse post() method
+
+
+    private JsonArray networkSet(Document resp, int respCode, String apiTypeName) throws Exception{
+    	JsonArray networkList = new JsonArray();
+		NodeList neList = resp.getElementsByTagName("NETWORK");
+		if (neList.getLength() == 0) {
+			throw new Exception("Network not found");
+		}
+		logger.info(apiTypeName + " list length - " + String.valueOf(neList.getLength()));
+		try {
+			for (int i = 0; i < neList.getLength(); i++) {
+	    			Node nNode = neList.item(i);
+	    			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+	                    Element eElement = (Element) nNode;
+	                    JsonObject network = new JsonObject();
+	                    network.addProperty("id", eElement
+			                       .getElementsByTagName("ID")
+			                       .item(0)
+			                       .getTextContent());
+
+	                    network.addProperty("name",
+			                       eElement
+			                       .getElementsByTagName("NAME")
+			                       .item(0)
+			                       .getTextContent());
+	                    networkList.add(network);
+	    			}// End of if
+			} // End of outer for loop
+		} catch (Exception e) {
+    		throw new Exception("Network list parsing error: "+e.getMessage());
+		}
+    	return networkList;
+    }//End of optionProfilesSet method
+
     
     private Set<String> optionProfilesSet(Document resp, int respCode, String apiTypeName) throws Exception{
     	Set<String> nameList = new HashSet<>();
 		NodeList opList = resp.getElementsByTagName("BASIC_INFO");
-		logger.info(apiTypeName + " list lenght - " + String.valueOf(opList.getLength()));
+		logger.info(apiTypeName + " list length - " + String.valueOf(opList.getLength()));
 		try {
 		for (int i = 0; i < opList.getLength(); i++) {	        			
     			Node nNode = opList.item(i);		        			
@@ -961,9 +1014,10 @@ public class QualysVMClient extends QualysBaseClient {
 				resp = this.get(this.apiMap.get(api), false);
 				logger.info("Response code received while getting the "+apiTypeName+" API call:" + resp.getResponseCode());
 							
-				if(resp != null && resp.getResponseCode() == 200) {					
+				if(resp.getResponseCode() == 200) {
 					opList = optionProfilesSet(resp.getResponseXml(), resp.getResponseCode(), apiTypeName);
 					break;
+
 				}else if (resp.getResponseCode() == 401) {
 	    			throw new Exception("ACCESS DENIED");
 	    		}else if (resp.getResponseCode() != 200) {
@@ -1000,6 +1054,55 @@ public class QualysVMClient extends QualysBaseClient {
     }// end of getList method
     
 
+    public JsonArray getNetworkList() throws Exception{
+    	QualysVMResponse resp = new QualysVMResponse();
+    	String apiTypeName = "Network";
+    	String api = "network";
+    	int retry = 0;
+    	try{
+    		while(retry < 3) {    	
+	    		logger.info("Retrying "+apiTypeName+" API call: " + retry);
+				resp = this.get(this.apiMap.get(api), false);
+				logger.info("Response code received while getting the "+apiTypeName+" API call:" + resp.getResponseCode());
+							
+				if(resp.getResponseCode() == 200) {
+					return networkSet(resp.getResponseXml(), resp.getResponseCode(), apiTypeName);
+				}else if (resp.getResponseCode() == 401) {
+	    			throw new Exception("ACCESS DENIED");
+	    		}else if (resp.getResponseCode() != 200) {
+	     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list."+responseCode+resp.getResponseCode()+conRefuse);
+	     		}else {
+	        		retry ++;
+	        		NodeList dataList = resp.getResponseXml().getElementsByTagName("RESPONSE");
+	        		for (int temp = 0; temp < dataList.getLength(); temp++) {	        			
+	        			Node nNode = dataList.item(temp);			
+	        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+	                        Element eElement = (Element) nNode;
+	                        throw new Exception(apiTypeName + " API Error code: " + 
+	                        			eElement
+	        	                       .getElementsByTagName("CODE")
+	        	                       .item(0)
+	        	                       .getTextContent() 
+	        	                       + " | API Error message: " + 
+	        	                       eElement
+	        	                       .getElementsByTagName("TEXT")
+	        	                       .item(0)
+	        	                       .getTextContent());
+	        			}
+	        		}
+	        	} //End of if else
+	    	}// End of while
+    	}catch (Exception e) {
+    		if(e.getMessage() == null){
+    			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list."+responseCode+resp.getResponseCode()+nullMessage);
+    		} else {
+     			throw new Exception(exceptionWhileToget+" the "+apiTypeName+" list." + " " +  e.getMessage());
+     		}
+    	}
+    	return null;
+    }// end of getList method
+
+    
     private JsonObject getScannerDetails(Document response, boolean ec2) {
     	String accountId = "";
     	String name = "";
@@ -1007,10 +1110,10 @@ public class QualysVMClient extends QualysBaseClient {
     	JSONObject scannerObj = new JSONObject();
     	JSONObject scannerList = new JSONObject();
     	try {
-	    	NodeList applinaceList = response.getElementsByTagName("APPLIANCE");
-			logger.info("Scanner List lenght - " + String.valueOf(applinaceList.getLength()));
-			for (int temp = 0; temp < applinaceList.getLength(); temp++) {	        			
-				Node nNode = applinaceList.item(temp);
+	    	NodeList applianceList = response.getElementsByTagName("APPLIANCE");
+			logger.info("Scanner List length - " + String.valueOf(applianceList.getLength()));
+			for (int temp = 0; temp < applianceList.getLength(); temp++) {
+				Node nNode = applianceList.item(temp);
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 	                Element eElement = (Element) nNode;
 	                name = eElement
@@ -1114,11 +1217,18 @@ public class QualysVMClient extends QualysBaseClient {
     	    	return doc;
     		}            
             DocumentBuilder builder = factory.newDocumentBuilder();
-            ByteArrayInputStream input = new ByteArrayInputStream(apiResponseString.toString().getBytes("UTF-8"));
+            ByteArrayInputStream input = new ByteArrayInputStream(apiResponseString.getBytes("UTF-8"));
             doc = builder.parse(input);
             doc.getDocumentElement().normalize();
             logger.info("Root element :" + doc.getDocumentElement().getNodeName());	            
-    	}catch (Exception e) {
+    	} catch(RuntimeException e) {
+    		String error = "Exception while getting Document. Reason: " + e.getMessage()+ "\n";
+    		logger.info(error);
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+    		throw new Exception(error);
+	    } catch (Exception e) {
+	    	logger.info("API response: "+apiResponseString);
     		String error = "Exception while getting Document. Reason: " + e.getMessage()+ "\n";
     		logger.info(error);
     		for (StackTraceElement traceElement : e.getStackTrace())
@@ -1129,20 +1239,36 @@ public class QualysVMClient extends QualysBaseClient {
     }// end of getDoc method
     
     private String getresponseString(CloseableHttpResponse response) throws Exception {
-    	String apiResponseString = "";
+    	StringBuilder apiResponseString = new StringBuilder();
+    	InputStreamReader isr = null;
+    	BufferedReader br = null;
     	try {
-    		BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "iso-8859-1"));
+    		isr = new InputStreamReader(response.getEntity().getContent(), "iso-8859-1");
+    		br = new BufferedReader(isr);
             String output;
             while ((output = br.readLine()) != null) {
-                apiResponseString += output;
+                apiResponseString.append(output);
             }
-    	}catch (Exception e) {
+    	} catch(RuntimeException e) {
     		String error = "Exception while getting response String. Error: " + e.getMessage();
     		logger.info(error);
     		for (StackTraceElement traceElement : e.getStackTrace())
                 logger.info("\tat " + traceElement);
     		throw new Exception(error);
+	    } catch (Exception e) {
+    		String error = "Exception while getting response String. Error: " + e.getMessage();
+    		logger.info(error);
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+    		throw new Exception(error);
+    	} finally {
+    		if (br != null) {
+    			br.close();
+    		}
+    		if(isr != null) {
+    			isr.close();
+    		}
     	}
-		return apiResponseString;
+		return apiResponseString.toString();
     } 
 } // end of QualysVMClient Class
