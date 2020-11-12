@@ -98,7 +98,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     private String pluginName = "Qualys Host Scanning Connector";    
     private String pollingInterval;
     private String vulnsTimeout;    
-    private int bySev;
+    private int bySev = 5;
     private boolean failBySev = false;    
     private String qidList;
     private boolean failByQids = false;    
@@ -496,17 +496,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
 			return true;
 		}
 		
-		@POST
-	    public ListBoxModel doFillBySevItems() {
-	    	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
-	    	ListBoxModel model = new ListBoxModel();
-	    	for(int i=5; i>=1; i--) {
-	    		Option e1 = new Option(Integer.toString(i), Integer.toString(i));
-		    	model.add(e1);
-	    	}
-	    	return model;
-	    }
-		
+
 	    public ListBoxModel doFillPlatformItems() {
         	ListBoxModel model = new ListBoxModel();
         	for(Map<String, String> platform: getPlatforms()) {

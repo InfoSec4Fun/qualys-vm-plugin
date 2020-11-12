@@ -168,8 +168,20 @@
 			}
 		} // End of configClicked
 		
+		
+		function updateSeverity(){
+			let rawBySevData = document.getElementById("rawBySev").value;
+			document.getElementById("bySev").value = rawBySevData;
+		}
+		let bySevData = document.getElementById("bySev").value;
+		if (bySevData == "") {
+			document.getElementById("bySev").value = "5";
+		}
+		document.getElementById("rawBySev").value = document.getElementById("bySev").value;
+		
 		document.getElementsByName("useHost")[0].addEventListener("click", configClicked, true);
-		document.getElementsByName("useEc2")[0].addEventListener("click", configClicked, true);		
+		document.getElementsByName("useEc2")[0].addEventListener("click", configClicked, true);
+		document.getElementById("rawBySev").addEventListener("change", updateSeverity);
 		
 		document.getElementById("byCvss").addEventListener("change", cvssOptionChanged, true);
 		if("${instance.byCvss}" === "cvss_base") document.getElementById("optionCVSSV2").selected= true;
@@ -311,9 +323,18 @@
 	      	<f:block>
 		      	<div class="severityBlock" id="SeveritySection">					      
 			      &#160; &#160; &#160; &#160; &#160; &#160; &#160; <f:checkbox field="failBySev" title="Fail with Severity " />
-				        <f:select field="bySev" name="bySev" style="width:9%; min-width:45px; max-width:50px;" default="5" />
+				        <select id="rawBySev">
+					        <option value="5">5</option>
+					        <option value="4">4</option>
+					        <option value="3">3</option>
+					        <option value="2">2</option>
+					        <option value="1">1</option>
+				        </select>
 					or above.
-			    </div>				      	
+			    </div>
+			<f:invisibleEntry>
+		    	<f:textbox id="bySev" field="bySev" />
+		    </f:invisibleEntry>
 			</f:block>
 		</f:block>
 		
