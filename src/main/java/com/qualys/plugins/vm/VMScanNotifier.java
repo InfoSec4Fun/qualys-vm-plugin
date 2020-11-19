@@ -810,6 +810,20 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         
         } //end of doCheckWebhookUrl FormValidation
         
+        public FormValidation doCheckNetwork(@QueryParameter String network) {
+        	try {
+	    		if (network.trim().equals("")) {
+	    			return FormValidation.error("Select a Network Name.");
+	    		} else if (network.trim().equals("NETWORK_NOT_FOUND")) {
+	    			return FormValidation.error("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks");
+	    		} else {
+	    			return FormValidation.ok();
+	    		}
+	    	} catch (Exception e) {
+	    		return FormValidation.error(e.getMessage());
+	    	}
+        } //end of doCheckNetwork FormValidation
+        
         @POST
         public FormValidation doCheckConnection(@QueryParameter String platform,@QueryParameter String apiServer, @QueryParameter String credsId,
         		@QueryParameter String proxyServer, @QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy, @AncestorInPath Item item) {
@@ -895,7 +909,9 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         		@QueryParameter String proxyPort, @QueryParameter String proxyCredentialsId, @QueryParameter boolean useProxy) {
         	Jenkins.getInstance().checkPermission(Item.CONFIGURE);
         	StandardListBoxModel model = new StandardListBoxModel();
-
+        	
+        	Option e1 = new Option("Select the network", "");
+        	model.add(e1);
         	try {
         		if(filledInputs(platform,apiServer, credsId, useProxy, proxyServer, proxyPort)) {
         			int proxyPortInt = (doCheckProxyPort(proxyPort)==FormValidation.ok()) ? Integer.parseInt(proxyPort) : 80;
@@ -910,23 +926,24 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
             		JsonArray networkList = client.getNetworkList();
             		for (JsonElement n : networkList) {
             			JsonObject network = n.getAsJsonObject();
-            			
             			Option e = new Option(network.get("name").getAsString(), network.get("id").getAsString());
             			model.add(e);
             		}
         		}// End of if
         	} catch(Exception e) {
+        		StandardListBoxModel errorModel = new StandardListBoxModel();
         		logger.warning("Error to get Network list. " + e.getMessage());
         		Option ee;
         		if (e.getMessage().contains("UNAUTHORIZED ACCESS")) {
-        			ee = new Option("Enable the option to access custom network list for your subscription", "");
+        			ee = new Option("Enable the option to access custom network list for your subscription", "UNAUTHORIZED_ACCESS");
         		} else if (e.getMessage().contains("Network not found")) {
-        			ee = new Option("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks", "");
+        			ee = new Option("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks", "NETWORK_NOT_FOUND");
         		} else {
         			ee = new Option(e.getMessage(), "");
         		}
         		
-    			model.add(ee);
+        		errorModel.add(ee);
+    			return errorModel;
         	}
         	model.sort(Helper.getOptionItemmsComparator());
         	return model;
