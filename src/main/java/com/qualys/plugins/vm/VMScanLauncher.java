@@ -507,10 +507,14 @@ public class VMScanLauncher{
         	}else {
         		throw new AbortException("Host IP - Required parameter to launch scan is missing.");        		
         	}
-    		if(network != null && !network.isEmpty()) {
-        		vmScan.append(String.format("%s=%s&", "ip_network_id", Helper.urlEncodeUTF8(network)));
-        	} else {
+    		if(network == null || network.isEmpty()) {
+    			throw new AbortException("Network Name - Required parameter to launch scan is missing.");
+    		} else if (network.trim().equals("NETWORK_NOT_FOUND")) {
+    			throw new AbortException("Network Name - There are currently no networks assigned to you. Contact your System Administrator to assign custom networks.");
+    		} else if (network.trim().equals("UNAUTHORIZED_ACCESS")) {
         		logger.info("Network Name - Unauthorized user.");
+        	} else {
+        		vmScan.append(String.format("%s=%s&", "ip_network_id", Helper.urlEncodeUTF8(network)));
         	}
 
     	}// end of useHost if

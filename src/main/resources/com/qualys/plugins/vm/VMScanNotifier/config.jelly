@@ -301,7 +301,7 @@
 			    </f:entry>
 		    </f:block>
 		    <f:block> 
-	   			<f:entry title="* Scanner Name:" field="scannerName" help="/plugin/qualys-vm/help/scannerName.html">
+	   			<f:entry title="* Scanner Name:" field="scannerName" description="Note: Wait till the scanner list gets completely populated after selecting the network" help="/plugin/qualys-vm/help/scannerName.html">
 	    			<f:select fillDependsOn="apiServer credsId useEc2 useHost network" style="width: 100%; min-width: 100%;" />
 	    		</f:entry>
 	   		</f:block>
