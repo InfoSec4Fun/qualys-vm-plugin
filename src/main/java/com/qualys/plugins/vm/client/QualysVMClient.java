@@ -106,7 +106,7 @@ public class QualysVMClient extends QualysBaseClient {
 	    		} else {
 	    			endPoint = this.apiMap.get("ec2ScannerName");
 	    		}
-	    		if (!networkId.isEmpty()) {
+	    		if (useHost && !networkId.isEmpty()) {
 	    			endPoint = endPoint + "&network_id="+networkId;
 	    		}
 	    		
