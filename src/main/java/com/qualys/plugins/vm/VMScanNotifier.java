@@ -935,7 +935,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         		logger.warning("Error to get Network list. " + e.getMessage());
         		Option ee;
         		if (e.getMessage().contains("UNAUTHORIZED ACCESS")) {
-        			ee = new Option("Enable the custom network list option for your subscription. For this scan, a predefined network will be used", "UNAUTHORIZED_ACCESS");
+        			ee = new Option("UNAUTHORIZED ACCESS - Please provide valid Qualys credentials", "UNAUTHORIZED_ACCESS");
         		} else if (e.getMessage().contains("Network not found")) {
         			ee = new Option("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks", "NETWORK_NOT_FOUND");
         		} else {
