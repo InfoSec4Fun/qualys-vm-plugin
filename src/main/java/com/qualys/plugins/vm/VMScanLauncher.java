@@ -499,7 +499,7 @@ public class VMScanLauncher{
     	{
     		if(scannerName.equals("All Scanners in Network"))
     		{
-    			logger.info("All Scanners in Network Selected. Setting parameter scanners_in_network to 1");
+    			logger.info("All Scanners in Network Selected. Setting scanners_in_network to 1");
     			vmScan.append("scanners_in_network=1&");
     		}
     		else
