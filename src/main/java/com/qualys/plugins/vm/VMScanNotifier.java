@@ -893,11 +893,8 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	        			model.add(e);
     	        		}
             		}  
-        			if(scannerList.size()>0)
-        			{
-        				Option e2 = new Option("All Scanners in Network", "All Scanners in Network");
-        				model.add(e2);
-        			}
+        			Option e2 = new Option("All Scanners in Network", "All Scanners in Network");
+        			model.add(e2);
         		}// End of if        		
         	} catch(Exception e) {    		
         		logger.warning("Error to get scanner list. " + e.getMessage());
