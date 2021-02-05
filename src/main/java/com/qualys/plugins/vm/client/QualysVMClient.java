@@ -282,6 +282,10 @@ public class QualysVMClient extends QualysBaseClient {
 			}
 
 		} catch (Exception e) {
+			if(errorMessage.isEmpty())
+			{
+				errorMessage = "Connection test failed; Please check API server and/or proxy details; Detailed Message : " +  e.getMessage();
+			}
 			throw new Exception(errorMessage);
 		}
 	}
@@ -308,13 +312,13 @@ public class QualysVMClient extends QualysBaseClient {
 				logger.info("Fetching auth token: Response code: " + response.getStatusLine().getStatusCode());
 				break;
 			} catch (SocketException e) {
-				logger.info("SocketException : " + e);
+				logger.info("SocketException : " + e.getMessage());
 				throw e;
 			} catch (IOException e) {
-				logger.info("IOException : " + e);
+				logger.info("IOException : " + e.getMessage());
 				throw e;
 			} catch (Exception e) {
-				logger.info("Exception : " + e);
+				logger.info("Exception : " + e.getMessage());
 
 				// Handling Empty response and empty response code here
 				timeInterval++;
@@ -323,7 +327,7 @@ public class QualysVMClient extends QualysBaseClient {
 						logger.info("Retry fetching auth token ...");
 						Thread.sleep((long)this.retryInterval * 1000);
 					} catch (Exception e1) {
-						logger.info("Exception : " + e1);
+						logger.info("Exception : " + e1.getMessage());
 						throw e1;
 					}
 				} else {
@@ -751,10 +755,14 @@ public class QualysVMClient extends QualysBaseClient {
         	apiResponse.setResponseCode(response.getStatusLine().getStatusCode());
         	logger.info("Server returned with ResponseCode: "+ apiResponse.getResponseCode());
         	if (apiResponse.getResponseCode() == 401) {
-    			throw new Exception(" Response Code:401 - ACCESS DENIED ");
+    			throw new Exception(responseCode + apiResponse.getResponseCode() + "; UNAUTHORIZED ACCESS - Please provide valid Qualys credentials");
 			}
 			if (apiResponse.getResponseCode() == 403) {
-    			throw new Exception(" Response Code: 403 - UNAUTHORIZED ACCESS ");
+    			throw new Exception(responseCode + apiResponse.getResponseCode() + "; ACCESS FORBIDDEN - Please provide valid Qualys credentials");
+			}
+			if(apiResponse.getResponseCode() == 407)
+			{
+				throw new Exception(responseCode + apiResponse.getResponseCode() + "; Connection test failed - Please provide valid proxy credentials");
 			}
 			// Handling the concurrent api limit reached case
 			else if (apiResponse.getResponseCode() == 409) {
@@ -810,7 +818,7 @@ public class QualysVMClient extends QualysBaseClient {
 			apiResponse.setErrored(true);
 	        apiResponse.setErrorMessage(e.getMessage());
 			if(e.getMessage() == null){
-    			throw new Exception(exceptionWhileTorun+" Qualys VM Response POST method."+responseCode+apiResponse.getResponseCode()+nullMessage);
+    			throw new Exception(exceptionWhileTorun+" Qualys VM Response GET method."+responseCode+apiResponse.getResponseCode()+nullMessage);
     		}else {
     			throw new Exception(e.getMessage());
     		}
@@ -821,7 +829,14 @@ public class QualysVMClient extends QualysBaseClient {
 				throw new Exception(exceptionWhileTorun + " Qualys VM Response GET method." + responseCode
 						+ apiResponse.getResponseCode() + nullMessage);
 			} else {
-				throw new Exception(e.getMessage());
+				if(e.getMessage().contains(responseCode))
+				{
+					throw new Exception(e.getMessage());
+				}
+				else
+				{
+					throw new Exception("Connection test failed; Please provide valid Qualys/proxy credentials, Detailed Reason: " + e.getMessage());
+				}
 			}
 		} // End of catch
 		return apiResponse;

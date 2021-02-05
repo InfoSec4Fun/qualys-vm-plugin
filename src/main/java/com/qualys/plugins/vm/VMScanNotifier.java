@@ -892,7 +892,9 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     	        			Option e = new Option(name + " (Status: "+scanStatus+")", name);
     	        			model.add(e);
     	        		}
-            		}        			        		
+            		}  
+        			Option e2 = new Option("All Scanners in Network", "All Scanners in Network");
+        			model.add(e2);
         		}// End of if        		
         	} catch(Exception e) {    		
         		logger.warning("Error to get scanner list. " + e.getMessage());
@@ -935,8 +937,12 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         		logger.warning("Error to get Network list. " + e.getMessage());
         		Option ee;
         		if (e.getMessage().contains("UNAUTHORIZED ACCESS")) {
-        			ee = new Option("Enable the custom network list option for your subscription. For this scan, a predefined network will be used", "UNAUTHORIZED_ACCESS");
-        		} else if (e.getMessage().contains("Network not found")) {
+        			ee = new Option("UNAUTHORIZED ACCESS - Please provide valid Qualys credentials", "UNAUTHORIZED_ACCESS");
+        		}
+        		else if(e.getMessage().contains("ACCESS FORBIDDEN")) {
+        			ee = new Option("Enable the custom network list option for your subscription. For this scan, a predefined network will be used", "ACCESS FORBIDDEN");
+        		}
+        		else if (e.getMessage().contains("Network not found")) {
         			ee = new Option("There are currently no networks assigned to you. Contact your System Administrator to assign custom networks", "NETWORK_NOT_FOUND");
         		} else {
         			ee = new Option(e.getMessage(), "");

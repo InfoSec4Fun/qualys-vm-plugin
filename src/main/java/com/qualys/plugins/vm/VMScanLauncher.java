@@ -495,8 +495,17 @@ public class VMScanLauncher{
     		throw new AbortException("Option Profile - Required parameter to launch scan is missing.");        		
     	} // End of optionProfile if
     	
-    	if(scannerName != null && !scannerName.isEmpty()) {
-    		vmScan.append(String.format("%s=%s&", "iscanner_name", Helper.urlEncodeUTF8(scannerName)));
+    	if(scannerName != null && !scannerName.isEmpty()) 
+    	{
+    		if(scannerName.equals("All Scanners in Network"))
+    		{
+    			logger.info("All Scanners in Network Selected. Setting scanners_in_network to 1");
+    			vmScan.append("scanners_in_network=1&");
+    		}
+    		else
+    		{
+    			vmScan.append(String.format("%s=%s&", "iscanner_name", Helper.urlEncodeUTF8(scannerName)));
+    		}
     	} else {
     		throw new AbortException("Scanner Name - Required parameter to launch scan is missing.");        		
     	} // End of scannerName if

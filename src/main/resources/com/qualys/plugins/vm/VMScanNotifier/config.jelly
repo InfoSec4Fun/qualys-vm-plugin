@@ -103,11 +103,15 @@
 		if(!checkbx2.checked &amp;&amp; !checkbx1.checked){
 			checkbx1.checked = true;
 			if(document.getElementsByName("_.hostIp")[0] != undefined)
+			{
 				document.getElementsByName("_.hostIp")[0].parentNode.parentNode.style.display='table-row';
-				
+				document.getElementsByName("_.hostIp")[0].parentNode.parentNode.nextSibling.nextSibling.style.display='table-row';
+			}
 			if(document.getElementsByName("_.network")[0] != undefined)
+			{
 				document.getElementsByName("_.network")[0].parentNode.parentNode.style.display='table-row';
-				
+				document.getElementsByName("_.network")[0].parentNode.parentNode.nextSibling.nextSibling.style.display='table-row';
+			}	
 			//updateOptionalBlock(checkbx1,true);	
 		}
 	
