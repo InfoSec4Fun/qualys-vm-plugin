@@ -900,10 +900,11 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
         			}
         		}// End of if        		
         	} catch(Exception e) {    		
+    			StandardListBoxModel errorModel = new StandardListBoxModel();
         		logger.warning("Error to get scanner list. " + e.getMessage());
         		Option ee = new Option(e.getMessage(), "");
-    			model.add(ee);
-        		//return object;
+        		errorModel.add(ee);
+    			return errorModel;
         	}
         	model.sort(Helper.getOptionItemmsComparator());
         	return model;
@@ -985,10 +986,12 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
             			model.add(e);	        		
             		}	        		
         		}// End of if        		
-        	} catch(Exception e) {    		
+        	} catch(Exception e) {    
+        		StandardListBoxModel errorModel = new StandardListBoxModel();
         		logger.warning("Error to get option profile list. " + e.getMessage());
         		Option ee = new Option(e.getMessage(), "");
-    			model.add(ee);
+        		errorModel.add(ee);
+    			return errorModel;
         	}        	
         	model.sort(Helper.getOptionItemmsComparator());
         	return model;
