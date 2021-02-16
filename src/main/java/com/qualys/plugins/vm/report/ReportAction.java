@@ -103,13 +103,24 @@ public class ReportAction implements Action {
     }
     
     public String getBuildStatus() {
-//    	return this.run.getBuildStatusSummary().message;
     	String buildStatus = this.run.getBuildStatusUrl();
-    	if(buildStatus.contains("red")) {
-    		return "FAILED";
-    	}else {
-    		return "PASSED";
-    	}				
+    	boolean isBuilding = this.run.isBuilding();
+    	
+    	if(isBuilding)
+    	{
+    		return "IN PROGRESS";
+    	}
+    	else
+    	{
+    		if(buildStatus.contains("red")) 
+        	{
+        		return "FAILED";
+        	}
+    		else 
+    		{
+        		return "PASSED";
+        	}			
+    	}	
     }
     
     @JavaScriptMethod

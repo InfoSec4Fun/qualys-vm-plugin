@@ -497,7 +497,7 @@ public class VMScanLauncher{
     	
     	if(scannerName != null && !scannerName.isEmpty()) 
     	{
-    		if(scannerName.equals("All Scanners in Network"))
+    		if(scannerName.equals("All_Scanners_in_Network") && network != null && !network.isEmpty() && !network.trim().equals("NETWORK_NOT_FOUND") && !network.trim().equals("UNAUTHORIZED_ACCESS") && !network.trim().equals("ACCESS_FORBIDDEN"))
     		{
     			logger.info("All Scanners in Network Selected. Setting scanners_in_network to 1");
     			vmScan.append("scanners_in_network=1&");
@@ -522,7 +522,11 @@ public class VMScanLauncher{
     			throw new AbortException("Network Name - There are currently no networks assigned to you. Contact your System Administrator to assign custom networks.");
     		} else if (network.trim().equals("UNAUTHORIZED_ACCESS")) {
         		logger.info("Network Name - Unauthorized user.");
-        	} else {
+        	} 
+    		else if (network.trim().equals("ACCESS_FORBIDDEN")) {
+        		logger.info("Network Name - ACCESS_FORBIDDEN");
+        	} 
+    		else {
         		vmScan.append(String.format("%s=%s&", "ip_network_id", Helper.urlEncodeUTF8(network)));
         	}
 

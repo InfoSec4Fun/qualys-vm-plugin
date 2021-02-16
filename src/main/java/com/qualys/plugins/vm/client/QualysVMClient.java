@@ -106,7 +106,8 @@ public class QualysVMClient extends QualysBaseClient {
 	    		} else {
 	    			endPoint = this.apiMap.get("ec2ScannerName");
 	    		}
-	    		if (useHost && !networkId.isEmpty()) {
+	    		if (useHost && networkId != null && !networkId.isEmpty() && !networkId.trim().equals("NETWORK_NOT_FOUND") && !networkId.trim().equals("UNAUTHORIZED_ACCESS") && !networkId.trim().equals("ACCESS_FORBIDDEN")) 
+	    		{
 	    			endPoint = endPoint + "&network_id="+networkId;
 	    		}
 	    		
@@ -170,9 +171,7 @@ public class QualysVMClient extends QualysBaseClient {
     	}
 		catch (Exception e) {
 			logger.info("ERROR: " + e.getMessage());
-			if (nameList.isEmpty()) {
-				nameList.add("ERROR: " + e.getMessage());
-			}
+			throw new Exception(e.getMessage());
 		}
     	return nameList;
     }//End of optionProfiles
@@ -271,9 +270,19 @@ public class QualysVMClient extends QualysBaseClient {
 				}
 			} else if (response.getStatusLine().getStatusCode() == 401) {
 				logger.info("Connection test failed; " + this.tmp_token);
-				errorMessage = "Connection test failed; response code : 401; Please provide valid Qualys credentials";
+				errorMessage = "UNAUTHORIZED ACCESS - Please provide valid Qualys credentials; " + responseCode + response.getStatusLine().getStatusCode();
 				throw new Exception(errorMessage);
-			} else {
+			}
+			else if (response.getStatusLine().getStatusCode() == 403) {
+				errorMessage = "ACCESS FORBIDDEN - Please provide valid Qualys credentials; " + responseCode + response.getStatusLine().getStatusCode();
+    			throw new Exception(errorMessage);
+			}
+			else if(response.getStatusLine().getStatusCode() == 407)
+			{
+				errorMessage = "INVALID PROXY DETAILS- Please provide valid proxy credentials; " + responseCode + response.getStatusLine().getStatusCode();
+				throw new Exception(errorMessage);
+			}
+			else {
 				logger.info("Error testing connection; " + this.tmp_token);
 				errorMessage = "Error testing connection; Server returned: " + response.getStatusLine().getStatusCode()
 						+ "; "
@@ -284,7 +293,7 @@ public class QualysVMClient extends QualysBaseClient {
 		} catch (Exception e) {
 			if(errorMessage.isEmpty())
 			{
-				errorMessage = "Connection test failed; Please check API server and/or proxy details; Detailed Message : " +  e.getMessage();
+				errorMessage = "Connection test failed; Please provide valid Qualys / proxy credentials; Detailed Message : " +  e.getMessage();
 			}
 			throw new Exception(errorMessage);
 		}
@@ -755,14 +764,14 @@ public class QualysVMClient extends QualysBaseClient {
         	apiResponse.setResponseCode(response.getStatusLine().getStatusCode());
         	logger.info("Server returned with ResponseCode: "+ apiResponse.getResponseCode());
         	if (apiResponse.getResponseCode() == 401) {
-    			throw new Exception(responseCode + apiResponse.getResponseCode() + "; UNAUTHORIZED ACCESS - Please provide valid Qualys credentials");
+    			throw new Exception("UNAUTHORIZED ACCESS - Please provide valid Qualys credentials; " + responseCode + apiResponse.getResponseCode());
 			}
 			if (apiResponse.getResponseCode() == 403) {
-    			throw new Exception(responseCode + apiResponse.getResponseCode() + "; ACCESS FORBIDDEN - Please provide valid Qualys credentials");
+    			throw new Exception("ACCESS FORBIDDEN - Please provide valid Qualys credential; " + responseCode + apiResponse.getResponseCode());
 			}
 			if(apiResponse.getResponseCode() == 407)
 			{
-				throw new Exception(responseCode + apiResponse.getResponseCode() + "; Connection test failed - Please provide valid proxy credentials");
+				throw new Exception("INVALID PROXY DETAILS- Please provide valid proxy credentials; " + responseCode + apiResponse.getResponseCode());
 			}
 			// Handling the concurrent api limit reached case
 			else if (apiResponse.getResponseCode() == 409) {
@@ -835,7 +844,7 @@ public class QualysVMClient extends QualysBaseClient {
 				}
 				else
 				{
-					throw new Exception("Connection test failed; Please provide valid Qualys/proxy credentials, Detailed Reason: " + e.getMessage());
+					throw new Exception("Please provide valid Qualys/proxy credentials, Detailed Reason: " + e.getMessage());
 				}
 			}
 		} // End of catch

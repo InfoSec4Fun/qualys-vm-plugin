@@ -113,7 +113,7 @@
 								
 							 </td>
 							 <td id="scanRef" style="display:none;"><div class="report-title">Scan Reference: <span id="reference" class="label-value"></span> </div></td>
-							<!-- <td id="reportUrl"><div class="report-title">Scan Report: <a target="_blank" href="${it.reportUrl}" id="report_url" class="label-value">Click here to view Scan Report on Qualys Portal</a> </div></td> -->
+							 <td id="reportUrl"><div class="report-title">Scan Report: <a target="_blank" href="${it.reportUrl}" id="report_url" class="label-value">Click here to view Scan Report on Qualys Portal</a> </div></td>
 						</tr>
 						<!-- <tr>
 							<td id="scanRef" style="display:none;"><div class="report-title">Scan Reference: <span id="reference" class="label-value"></span> </div></td>							
