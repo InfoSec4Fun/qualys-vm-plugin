@@ -98,7 +98,7 @@ public class VMScanNotifier extends Notifier implements SimpleBuildStep {
     private String pluginName = "Qualys Host Scanning Connector";    
     private String pollingInterval;
     private String vulnsTimeout;    
-    private int bySev = 5;
+    private int bySev;
     private boolean failBySev = false;    
     private String qidList;
     private boolean failByQids = false;    
