@@ -93,7 +93,7 @@
 				<div class="summary-text-content">
 					<table style="width:100%;">
 						<tr>
-							<td id="scanBuildStatus" style="display:none;"><div class="report-title">Scan Build Status: <span id="buildStatus" class="label-value"></span> </div></td>
+							<td id="scanBuildStatus" style="display:none;"><div class="report-title">Scan Evaluation Status: <span id="buildStatus" class="label-value"></span> </div></td>
 							<td><div class="report-title">Scan Name: <span class="label-value">${it.scanName}</span> </div> </td>
 						</tr>
 						<tr>
@@ -319,10 +319,14 @@
              		document.getElementById("buildStatus").textContent = "${it.buildStatus}";
              		document.getElementById("buildStatus").style.color = "green";
              		document.getElementById("buildStatus").style.fontWeight = "700";
-             	} else{
+             	} else if("${it.buildStatus}" === "FAILED"){
              		document.getElementById("buildStatus").textContent = "${it.buildStatus}";
              		document.getElementById("buildStatus").style.color = "red";
              		document.getElementById("buildStatus").style.fontWeight = "700";
+             	} else {
+             	    document.getElementById("buildStatus").textContent = "${it.buildStatus}" + "&#160;&#160;" ;
+             		document.getElementById("buildStatus").style.color = "grey";
+             		document.getElementById("buildStatus").style.fontWeight = "350";
              	}
              	
              	if("resultsStatus" in a){             		

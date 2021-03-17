@@ -103,24 +103,49 @@ public class ReportAction implements Action {
     }
     
     public String getBuildStatus() {
-    	String buildStatus = this.run.getBuildStatusUrl();
-    	boolean isBuilding = this.run.isBuilding();
+    	JsonObject respObj = null;
     	
-    	if(isBuilding)
-    	{
-    		return "IN PROGRESS";
-    	}
-    	else
-    	{
-    		if(buildStatus.contains("red")) 
-        	{
-        		return "FAILED";
+    	try {    		
+    		String scanIdNew = scanRef.replace("/","_"); 
+    		String filename = run.getArtifactsDir().getAbsolutePath() + File.separator + "qualys_" + scanIdNew + ".json";    		
+        	File f = new File(filename);
+        	Gson gson = new Gson();
+        	if(f.exists()){
+        		String resultStr = FileUtils.readFileToString(f);
+        		String resultStrClean = resultStr;
+        		JsonReader jr = new JsonReader(new StringReader(resultStrClean.trim())); 
+        		jr.setLenient(true); 
+        		respObj = gson.fromJson(jr, JsonObject.class);        		
         	}
-    		else 
-    		{
-        		return "PASSED";
-        	}			
-    	}	
+        	//if failOnconditions configured then only we will have evalResult
+        	if(respObj != null && (respObj.has("evaluationResult") && !respObj.get("evaluationResult").isJsonNull())){
+        		
+        		JsonElement respEl = respObj.get("evaluationResult");
+       			JsonObject evalresult = respEl.getAsJsonObject();
+       	
+       			if (evalresult.get("evaluationStatus") == null){
+       				return "Not Found";
+       			}
+       			
+       			if(evalresult.get("evaluationStatus").isJsonNull()) {
+       				return "Criteria not configured";
+       			}
+       			
+       			String status = evalresult.get("evaluationStatus").getAsString();
+       			
+       			if (status.equals("pass")) {
+       				return "PASSED";
+       			} else if(status.equals("fail")){
+       				return "FAILED";
+       			} 
+       		
+        	}else {
+        		return "Not Found";
+        	}  
+    	}catch(Exception e) {
+    		logger.info("Error parsing evaluationResult from scan Result: " + e.getMessage());
+    	}
+    	return "-";
     }
     
     @JavaScriptMethod
