@@ -326,7 +326,6 @@
              	} else {
              	    document.getElementById("buildStatus").textContent = "${it.buildStatus}" + "&#160;&#160;" ;
              		document.getElementById("buildStatus").style.color = "grey";
-             		document.getElementById("buildStatus").style.fontWeight = "350";
              	}
              	
              	if("resultsStatus" in a){             		
