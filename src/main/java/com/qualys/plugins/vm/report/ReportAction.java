@@ -61,7 +61,7 @@ public class ReportAction implements Action {
 
     public ReportAction(Run<?, ?> run, String scanRef, String scanId, String scanTarget, String scannerName,
     		String scanName, String apiServer, String apiUser, Secret apiPass, boolean useProxy, 
-    		String proxyServer, int proxyPort, String proxyUsername, Secret proxyPassword, 
+    		String proxyServer, int proxyPort, String proxyUsername, Secret proxyPassword, String serverPlatformUrl,
     		String duration, String reference, String scanType, String scanStatus, String subScanStatus) {
         this.scanId = scanId;
         this.scanRef = scanRef;
@@ -75,7 +75,7 @@ public class ReportAction implements Action {
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = proxyPassword;
-        this.portalUrl = apiServer;
+        this.portalUrl = serverPlatformUrl;
         this.status = scanStatus;
         this.subScanStatus = subScanStatus;
         this.duration = duration;

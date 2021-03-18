@@ -16,6 +16,7 @@ public class QualysAuth {
     private Secret proxyPassword;
     private int proxyPort;
     private String gatewayURL = null;
+    private String platformURL = null;
     private static List<String> serverPlatformURL = new ArrayList<String>();
     private static List<String> serverApiURL = new ArrayList<String>();
     private static List<String> serverGatewayURL = new ArrayList<String>();
@@ -28,29 +29,29 @@ public class QualysAuth {
     	serverPlatformURL.add("https://qualysguard.qualys.com");
     	serverPlatformURL.add("https://qualysguard.qg2.apps.qualys.com");
     	serverPlatformURL.add("https://qualysguard.qg3.apps.qualys.com");
-    	serverPlatformURL.add("https://qualysguard.qg4.apps.qualys.com");
     	serverPlatformURL.add("https://qualysguard.qualys.eu");
     	serverPlatformURL.add("https://qualysguard.qg2.apps.qualys.eu");
     	serverPlatformURL.add("https://qualysguard.qg1.apps.qualys.in");
     	serverPlatformURL.add("https://qualysguard.qg1.apps.qualys.ca");
+    	serverPlatformURL.add("https://qualysguard.qg1.apps.qualys.ae");
     	
     	serverApiURL.add("https://qualysapi.qualys.com");
     	serverApiURL.add("https://qualysapi.qg2.apps.qualys.com");
     	serverApiURL.add("https://qualysapi.qg3.apps.qualys.com");
-    	serverApiURL.add("https://qualysapi.qg4.apps.qualys.com");
     	serverApiURL.add("https://qualysapi.qualys.eu");
     	serverApiURL.add("https://qualysapi.qg2.apps.qualys.eu");
     	serverApiURL.add("https://qualysapi.qg1.apps.qualys.in");
     	serverApiURL.add("https://qualysapi.qg1.apps.qualys.ca");
+    	serverApiURL.add("https://qualysapi.qg1.apps.qualys.ae");
     	
     	serverGatewayURL.add("https://gateway.qg1.apps.qualys.com");
     	serverGatewayURL.add("https://gateway.qg2.apps.qualys.com");
     	serverGatewayURL.add("https://gateway.qg3.apps.qualys.com");
-    	serverGatewayURL.add("https://gateway.qg4.apps.qualys.com");
     	serverGatewayURL.add("https://gateway.qg1.apps.qualys.eu");
     	serverGatewayURL.add("https://gateway.qg2.apps.qualys.eu");
     	serverGatewayURL.add("https://gateway.qg1.apps.qualys.in");
     	serverGatewayURL.add("https://gateway.qg1.apps.qualys.ca");
+    	serverGatewayURL.add("https://gateway.qg1.apps.qualys.ae");
     	
     }
 
@@ -101,6 +102,29 @@ public class QualysAuth {
     		return server.replace("qualysguard", "qualysapi");
     	}
     }
+	
+	public String getServerPlatformUrl() {
+		int pos;
+		if (platformURL == null) {
+			if (server.endsWith("/")) {
+				server = server.substring(0, server.length() - 1);
+			}
+			pos = serverPlatformURL.indexOf(server);
+			if (pos == -1) {
+				pos = serverApiURL.indexOf(server);
+			}
+			if (pos == -1) {
+				pos = serverGatewayURL.indexOf(server);
+			}
+			if (pos == -1) {
+				platformURL = server;
+			} else {
+				platformURL = serverPlatformURL.get(pos);
+			}
+		}
+
+		return platformURL;
+	}
 	
 	public String getServerForTestConnection() {
 		int pos;
