@@ -102,9 +102,16 @@ public class Helper {
     	platform8.put("name", "CANADA Platform"); platform8.put("code", "CANADA_PLATFORM"); platform8.put("url", "https://qualysapi.qg1.apps.qualys.ca");
     	platform8.put("portal", "https://qualysguard.qg1.apps.qualys.ca"); aList.put("CANADA_PLATFORM", platform8);
     	
+    	//JPVM-479: Adding AE platform
+    	
     	Map<String, String> platform9 = new HashMap <String, String>();
-    	platform9.put("name", "Private Cloud Platform"); platform9.put("code", "PCP"); platform9.put("url", "");
-    	aList.put("PCP", platform9);
+    	platform9.put("name", "AE Platform"); platform9.put("code", "AE_PLATFORM"); platform9.put("url", "https://qualysapi.qg1.apps.qualys.ae");
+    	platform9.put("portal", "https://qualysguard.qg1.apps.qualys.ae"); aList.put("AE_PLATFORM", platform9);
+    	
+    	
+    	Map<String, String> platform10 = new HashMap <String, String>();
+    	platform10.put("name", "Private Cloud Platform"); platform10.put("code", "PCP"); platform10.put("url", "");
+    	aList.put("PCP", platform10);
     	
     	platformsList = Collections.unmodifiableMap(aList);
     }

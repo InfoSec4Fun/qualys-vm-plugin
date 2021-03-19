@@ -61,7 +61,7 @@ public class ReportAction implements Action {
 
     public ReportAction(Run<?, ?> run, String scanRef, String scanId, String scanTarget, String scannerName,
     		String scanName, String apiServer, String apiUser, Secret apiPass, boolean useProxy, 
-    		String proxyServer, int proxyPort, String proxyUsername, Secret proxyPassword, 
+    		String proxyServer, int proxyPort, String proxyUsername, Secret proxyPassword, String serverPlatformUrl,
     		String duration, String reference, String scanType, String scanStatus, String subScanStatus) {
         this.scanId = scanId;
         this.scanRef = scanRef;
@@ -75,7 +75,7 @@ public class ReportAction implements Action {
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = proxyPassword;
-        this.portalUrl = apiServer;
+        this.portalUrl = serverPlatformUrl;
         this.status = scanStatus;
         this.subScanStatus = subScanStatus;
         this.duration = duration;
@@ -103,24 +103,122 @@ public class ReportAction implements Action {
     }
     
     public String getBuildStatus() {
-    	String buildStatus = this.run.getBuildStatusUrl();
-    	boolean isBuilding = this.run.isBuilding();
+    	JsonObject respObj = null;
     	
-    	if(isBuilding)
-    	{
-    		return "IN PROGRESS";
-    	}
-    	else
-    	{
-    		if(buildStatus.contains("red")) 
-        	{
-        		return "FAILED";
+    	try {    		
+    		String scanIdNew = scanRef.replace("/","_"); 
+    		String filename = run.getArtifactsDir().getAbsolutePath() + File.separator + "qualys_" + scanIdNew + ".json";    		
+        	File f = new File(filename);
+        	Gson gson = new Gson();
+        	if(f.exists()){
+        		String resultStr = FileUtils.readFileToString(f);
+        		String resultStrClean = resultStr;
+        		JsonReader jr = new JsonReader(new StringReader(resultStrClean.trim())); 
+        		jr.setLenient(true); 
+        		respObj = gson.fromJson(jr, JsonObject.class);        		
         	}
-    		else 
-    		{
-        		return "PASSED";
-        	}			
-    	}	
+        	//if failOnconditions configured then only we will have evalResult
+        	if(respObj != null && (respObj.has("evaluationResult") && !respObj.get("evaluationResult").isJsonNull())){
+        		
+        		JsonElement respEl = respObj.get("evaluationResult");
+       			JsonObject evalresult = respEl.getAsJsonObject();
+       	
+       			if (evalresult.get("evaluationStatus") == null){
+       				//compute the evaluation status based on other keys
+       				if (evalresult.size() == 0 ) {
+       					return "Not Found";
+       				}
+       				boolean status = true, criteriaNotConfigured = true;
+       				if (evalresult.has("qids") && !evalresult.get("qids").isJsonNull()) {
+       					if (evalresult.get("qids").getAsJsonObject().get("result") != null) {
+       						status = evalresult.get("qids").getAsJsonObject().get("result").getAsBoolean();
+       						criteriaNotConfigured = false;
+           					if (!status) {
+               					return "FAILED";
+               				}
+       					}
+       					
+       				}	
+       				
+       				if (evalresult.has("severities") && !evalresult.get("severities").isJsonNull()) {
+       					JsonElement sev = evalresult.get("severities");
+       					criteriaNotConfigured = false;
+       	       			JsonObject sevObject = sev.getAsJsonObject();
+       	       			for (int i = 1; i <= 5; ++i ) {
+       	       				status = true;
+       	       				String sevNumber = String.valueOf(i);
+	       	       			if (sevObject.has(sevNumber) && !sevObject.get(sevNumber).isJsonNull()) {
+		       					status = sevObject.get(sevNumber).getAsJsonObject().get("result").getAsBoolean();
+		       				}
+		       	       		if (!status) {
+		       					return "FAILED";
+		       				}
+       	       			}
+       				}
+       				
+       				if (evalresult.has("cveIds") && !evalresult.get("cveIds").isJsonNull()) {
+       					if (evalresult.get("cveIds").getAsJsonObject().get("result") != null) {
+       						status = evalresult.get("cveIds").getAsJsonObject().get("result").getAsBoolean();
+       						criteriaNotConfigured = false;
+           					if (!status) {
+               					return "FAILED";
+               				}
+       					}	
+       				}	
+       				
+       				if (evalresult.has("cvss_base") && !evalresult.get("cvss_base").isJsonNull()) {
+       					status = evalresult.get("cvss_base").getAsJsonObject().get("result").getAsBoolean();
+       					criteriaNotConfigured = false;
+       					if (!status) {
+           					return "FAILED";
+           				}
+       				}	
+       				
+       				if (evalresult.has("cvss3_base") && !evalresult.get("cvss3_base").isJsonNull()) {
+       					status = evalresult.get("cvss3_base").getAsJsonObject().get("result").getAsBoolean();
+       					criteriaNotConfigured = false;
+       					if (!status) {
+           					return "FAILED";
+           				}
+       				}	
+       				
+       				if (evalresult.has("pci_vuln") && !evalresult.get("pci_vuln").isJsonNull()) {
+       					status = evalresult.get("pci_vuln").getAsJsonObject().get("result").getAsBoolean();
+       					criteriaNotConfigured = false;
+       					if (!status) {
+           					return "FAILED";
+           				}
+       				}
+       				
+       				if (criteriaNotConfigured) {
+       					return "Criteria not configured";
+       				}
+       				
+       				return "PASSED";
+       				
+       			}
+       			
+       			if(evalresult.get("evaluationStatus").isJsonNull()) {
+       				return "Criteria not configured";
+       			}
+       			
+       			String status = evalresult.get("evaluationStatus").getAsString();
+       			
+       			if (status.equals("pass")) {
+       				return "PASSED";
+       			} else if(status.equals("fail")){
+       				return "FAILED";
+       			} 
+       		
+        	}else {
+        		return "Not Found";
+        	}  
+    	}catch(Exception e) {
+    		logger.info("Error parsing evaluationResult from scan Result: " + e.getMessage());
+    		for (StackTraceElement traceElement : e.getStackTrace())
+                logger.info("\tat " + traceElement);
+    	}
+    	return "-";
     }
     
     @JavaScriptMethod

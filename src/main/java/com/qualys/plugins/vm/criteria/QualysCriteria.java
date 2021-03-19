@@ -283,9 +283,13 @@ public class QualysCriteria {
 					!status.get("cvssB3Status").getAsBoolean()||
 					!status.get("pciStatus").getAsBoolean() ) {			
 				finalStatus = false;
+				returnObject.addProperty("evaluationStatus", "fail");
+			} else {
+				returnObject.addProperty("evaluationStatus", "pass");
 			}
 		}else {
 			finalStatus = true;
+			returnObject.add("evaluationStatus", JsonNull.INSTANCE);
 		}
 		
 		return finalStatus;

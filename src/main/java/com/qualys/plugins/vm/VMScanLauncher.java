@@ -164,7 +164,7 @@ public class VMScanLauncher{
 	    				scanNameResolved, this.auth.getServer(), this.auth.getUsername(), 
 	    				this.auth.getPassword(), this.auth.getUseProxy(), 
 	    				this.auth.getProxyServer(), this.auth.getProxyPort(), 
-	    				this.auth.getProxyUsername(), this.auth.getProxyPassword(), 
+	    				this.auth.getProxyUsername(), this.auth.getProxyPassword(), this.auth.getServerPlatformUrl(),
 	    				duration, reference, scanType, scanStatus, subScanStatus);
 				run.addAction(action);				
 				
