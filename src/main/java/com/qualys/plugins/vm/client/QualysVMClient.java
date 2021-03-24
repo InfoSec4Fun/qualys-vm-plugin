@@ -172,7 +172,7 @@ public class QualysVMClient extends QualysBaseClient {
 		catch (Exception e) {
 			logger.info("ERROR: " + e.getMessage());
 			if (nameList.isEmpty()) {
-				nameList.add("ERROR: " + e.getMessage());
+				throw new Exception(e.getMessage());
 			}
 		}
     	return nameList;
