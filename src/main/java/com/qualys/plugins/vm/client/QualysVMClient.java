@@ -171,7 +171,9 @@ public class QualysVMClient extends QualysBaseClient {
     	}
 		catch (Exception e) {
 			logger.info("ERROR: " + e.getMessage());
-			throw new Exception(e.getMessage());
+			if (nameList.isEmpty()) {
+				nameList.add("ERROR: " + e.getMessage());
+			}
 		}
     	return nameList;
     }//End of optionProfiles
@@ -1001,7 +1003,7 @@ public class QualysVMClient extends QualysBaseClient {
     		throw new Exception("Network list parsing error: "+e.getMessage());
 		}
     	return networkList;
-    }//End of optionProfilesSet method
+    }
 
     
     private Set<String> optionProfilesSet(Document resp, int respCode, String apiTypeName) throws Exception{
