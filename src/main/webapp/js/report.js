@@ -17,7 +17,10 @@ function showVulnsTable(scanResult){
             { "mData": "category", sDefaultContent :  '-', "width": "9%"},
             { "mData": "pci_vuln", sDefaultContent :  '-', "width": "5%"},
             { "mData": "type", sDefaultContent :  '-', "width": "8%"},
-            { "mData": "bugtraq_id", sDefaultContent :  '-', "width": "5%"}
+            { "mData": "bugtraq_id", sDefaultContent :  '-', "width": "5%"},
+            { "mData": "exploitability", sDefaultContent :  '-', "width": "5%"},
+            { "mData": "associated_malware", sDefaultContent :  '-', "width": "5%"}
+           
         ],
         'aoColumnDefs': [
         	{ "sTitle": "QID", "aTargets": [0], "width": "6%", "className": "center"},
@@ -29,7 +32,9 @@ function showVulnsTable(scanResult){
             { "sTitle": "Category", "aTargets": [6], "width": "9%", "className": "center"},
             { "sTitle": "PCI Vuln?", "aTargets": [7], "width": "5%", "className": "center"},
             { "sTitle": "Type", "aTargets": [8], "width": "8%", "className": "center"},            
-            { "sTitle": "Bug Traq Id", "aTargets": [9], "width": "5%", "className": "center"}
+            { "sTitle": "Bug Traq Id", "aTargets": [9], "width": "5%", "className": "center"},
+            { "sTitle": "Exploitability", "aTargets": [10], visible:false},
+            { "sTitle": "Associated_Malware", "aTargets": [11], visible:false}
         ]
     });
 	
@@ -89,7 +94,12 @@ function showVulnsTable(scanResult){
 	    	'<option value="Confirmed"> Confirmed </option>' +
 	    	'<option value="Potential"> Potential </option>' +
 	    	'</select>' +
-	    	'</div>'
+	    	'</div>'+
+	    	'<ul class="filters-list">' +
+    		'<li><input class="custom-filter-checkbox" type="checkbox" id="exploitable" value="exploitable"><label for="exploitable" class="checkbox-title" > Exploitable </li>' +
+    		'<li><input class="custom-filter-checkbox" type="checkbox" id="malware" value="malware"> <label for="malware" class="checkbox-title" > Associated Malware </li>' +
+    		'</ul>' +
+    		'<button type="button" id="reset" >Reset Filters</button>'
 	    );
 	    
 	    jQuery(".custom-filters-left").html(
@@ -113,6 +123,30 @@ function showVulnsTable(scanResult){
 			 var valueSelected = this.value;
 			 table.columns(8).search( valueSelected ).draw();
 	    });
+	    
+	    jQuery(".custom-filter-checkbox").on("change", function(e){
+		switch(this.value){	
+			case 'exploitable': 
+						var value = (this.checked)? 'true' : '';
+						table.columns(10).search( value ).draw();
+						break;
+			case 'malware': 
+						var value = (this.checked)? 'true' : '';
+						table.columns(11).search( value ).draw();
+						break;
+		}
+	});
+	
+	$( "#reset" ).click(function() 
+	{
+  		$(".severity-dropdown").val('');
+  		$(".pci-dropdown").val('');
+  		$(".type-dropdown").val('');
+  		$("#exploitable").prop("checked",false);
+  		$("#malware").prop("checked",false);
+
+  		table.search( '' ).columns().search( '' ).draw();
+	});
 }
 
 function drawBuildSummary(reportObject){

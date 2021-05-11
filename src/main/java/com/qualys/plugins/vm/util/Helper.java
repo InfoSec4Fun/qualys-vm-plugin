@@ -505,8 +505,8 @@ public class Helper {
 					scanObject.remove("threat");
 					scanObject.remove("impact");
 					scanObject.remove("solution");
-					scanObject.remove("exploitability");
-					scanObject.remove("associated_malware");
+					//scanObject.remove("exploitability");
+					//scanObject.remove("associated_malware");
 					scanObject.remove("os_cpe");
 					if (scanObject.has("qid") && scanObject.has("type") && (scanObject.get("type").getAsString().equalsIgnoreCase("Vuln") || scanObject.get("type").getAsString().equalsIgnoreCase("Practice"))) {
 						if (scanObject.get("type").getAsString().equalsIgnoreCase("Vuln")) scanObject.addProperty("type", "Confirmed");
