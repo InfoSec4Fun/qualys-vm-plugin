@@ -18,8 +18,8 @@ function showVulnsTable(scanResult){
             { "mData": "pci_vuln", sDefaultContent :  '-', "width": "5%"},
             { "mData": "type", sDefaultContent :  '-', "width": "8%"},
             { "mData": "bugtraq_id", sDefaultContent :  '-', "width": "5%"},
-            { "mData": "exploitability", sDefaultContent :  '-', "width": "5%"},
-            { "mData": "associated_malware", sDefaultContent :  '-', "width": "5%"}
+            { "mData": "exploitability", sDefaultContent :  '-'},
+            { "mData": "associated_malware", sDefaultContent :  '-'}
            
         ],
         'aoColumnDefs': [
