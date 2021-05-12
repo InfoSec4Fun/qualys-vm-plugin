@@ -21,9 +21,8 @@
 <l:main-panel>
 	<script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/jquery-2.1.4.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/datatable/js/jquery.dataTables.min.js"></script>
-	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/js/report.js"></script>
-	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart-1.0.1.min.js"></script>
+	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart-3.2.1.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="${resURL}/plugin/qualys-vm/css/style.css" />
 	<link href="${resURL}/plugin/qualys-vm/datatable/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 	
