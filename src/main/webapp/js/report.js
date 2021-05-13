@@ -200,8 +200,6 @@ function drawCVulnsCharts(scanResults) {
     var c = jQuery("#sevCVulns").get(0);
     var ctx = c.getContext("2d");
 
-
-
     jQuery("#sevCVulns-error").hide();
     jQuery("#sevCVulns").show();
     jQuery("#pie-legend-div-c").show();
@@ -212,8 +210,6 @@ function drawCVulnsCharts(scanResults) {
         jQuery("#sevCVulns-error").show();
     } else {
         var d = scanResults.cVulnsBySev;
-
-
         var i = 0;
         var total = 0;
 
@@ -231,7 +227,6 @@ function drawCVulnsCharts(scanResults) {
             colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
             show_tooltip = false;
         }
-
 
         var labels = count;
         var options = {
@@ -291,8 +286,6 @@ function drawPVulnsCharts(scanResults){
     var c = jQuery("#sevPVulns").get(0);
     var ctx = c.getContext("2d");
 
-
-
     jQuery("#sevPVulns-error").hide();
     jQuery("#sevPVulns").show();
     jQuery("#pie-legend-div-p").show();
@@ -303,8 +296,6 @@ function drawPVulnsCharts(scanResults){
         jQuery("#sevCVulns-error").show();
     } else {
         var d = scanResults.pVulnsBySev;
-
-
         var i = 0;
         var total = 0;
 
@@ -322,7 +313,6 @@ function drawPVulnsCharts(scanResults){
             colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
             show_tooltip = false;
         }
-
 
         var labels = count;
         var options = {
