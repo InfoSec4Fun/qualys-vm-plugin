@@ -21,9 +21,8 @@
 <l:main-panel>
 	<script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/jquery-2.1.4.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/datatable/js/jquery.dataTables.min.js"></script>
-	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/js/report.js"></script>
-	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart-1.0.1.min.js"></script>
+	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart-3.2.1.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="${resURL}/plugin/qualys-vm/css/style.css" />
 	<link href="${resURL}/plugin/qualys-vm/datatable/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css"/>
 	
@@ -164,7 +163,6 @@
 							<div class="report-chart-div">
 								<div id="sevCVulns-error" style="margin: 92px;">There are no vulnerabilities!</div>
 								<canvas id="sevCVulns" width="180" height="180" ></canvas>
-								<div id="pie-legend-div-c" class="chart-legend" ></div>
 							</div>
 						</div>
 					</div>
@@ -174,7 +172,6 @@
 							<div class="report-chart-div">
 								<div id="sevPVulns-error" style="margin: 92px;">There are no vulnerabilities!</div>
 								<canvas id="sevPVulns" width="180" height="180" ></canvas>
-								<div id="pie-legend-div-p" class="chart-legend" ></div>
 							</div>
 						</div>
 					</div>
