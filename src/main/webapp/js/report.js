@@ -220,6 +220,8 @@ function drawCVulnsCharts(scanResults) {
             i++;
         }
 
+        var labels = count;
+        
         if (!count.some(el => el !== 0)) {
             count = ["1", "1", "1", "1", "1"];
             severity = ["1", "2", "3", "4", "5"];
@@ -228,7 +230,6 @@ function drawCVulnsCharts(scanResults) {
             show_tooltip = false;
         }
 
-        var labels = count;
         var options = {
             responsive: true,
             plugins: {
@@ -306,6 +307,8 @@ function drawPVulnsCharts(scanResults){
             i++;
         }
 
+        var labels = count;
+        
         if (!count.some(el => el !== 0)) {
             count = ["1", "1", "1", "1", "1"];
             severity = ["1", "2", "3", "4", "5"];
@@ -314,7 +317,6 @@ function drawPVulnsCharts(scanResults){
             show_tooltip = false;
         }
 
-        var labels = count;
         var options = {
             responsive: true,
             plugins: {

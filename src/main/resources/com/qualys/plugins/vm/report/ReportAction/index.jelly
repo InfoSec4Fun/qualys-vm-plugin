@@ -163,7 +163,6 @@
 							<div class="report-chart-div">
 								<div id="sevCVulns-error" style="margin: 92px;">There are no vulnerabilities!</div>
 								<canvas id="sevCVulns" width="180" height="180" ></canvas>
-								<div id="pie-legend-div-c" class="chart-legend" ></div>
 							</div>
 						</div>
 					</div>
@@ -173,7 +172,6 @@
 							<div class="report-chart-div">
 								<div id="sevPVulns-error" style="margin: 92px;">There are no vulnerabilities!</div>
 								<canvas id="sevPVulns" width="180" height="180" ></canvas>
-								<div id="pie-legend-div-p" class="chart-legend" ></div>
 							</div>
 						</div>
 					</div>
