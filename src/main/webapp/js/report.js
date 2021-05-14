@@ -33,6 +33,7 @@ function showVulnsTable(scanResult){
         ]
     });
 	
+  //test commit
 	 jQuery('#vulnsTable tbody').on('click', 'td.details-control', function () {
 	        var tr = jQuery(this).closest('tr');
 	        var row = table.row( tr );
