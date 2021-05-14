@@ -191,154 +191,176 @@ function showEvaluationSummary(scanResult){
 	}	
 }
 
-function drawCVulnsCharts(scanResults){
-	jQuery("#sevCVulns-error").hide();
-	jQuery("#sevCVulns").show();
-	jQuery("#pie-legend-div-c").show();
-	if(scanResults.vulns == "0"){
-		jQuery("#sevCVulns").hide();
-		jQuery("#pie-legend-div-c").hide();
-		jQuery("#sevCVulns-error").show();
-	}else{
-		var d = scanResults.cVulnsBySev;
-//		var d = {"1": 12,"2": 1,"3": 32,"4": 5,"5": 15}
-		var count = Array();
-		var severity = Array();
-		
-		var i = 0;
-		var total = 0;
-		for (var key in d) {
-			count[i] = d[key];
-		   severity[i] = key;
-		   total += count[i]; 
-		   i++;
-		}
-		var options = {
-		    //segmentShowStroke: false,
-		    animateRotate: true,
-		    animateScale: false,
-		    percentageInnerCutout: 50,
-		    tooltipTemplate: "<%= label %>"
-		}
-//		var colors = ["#CCFFCC", "#CCFFFF", "#FFFF99", "#FF9934","#FF0A00"];
-		var colors = ["#E8E4AE", "#F4BB48", "#FAA23B", "#DE672A","#D61E1C"];
-		var labels = count; 
-		jQuery("#confTotCount").text(total);
-		if(! count.some(el => el !== 0)){
-			count = ["1", "1", "1", "1", "1"];
-			severity = ["1", "2", "3", "4", "5"];
-			labels = ["0", "0", "0", "0", "0"];	
-			colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
-		}
-		
-		var c = jQuery("#sevCVulns").get(0);
-			var ctx = c.getContext("2d");
-		
-			var pieData = [
-				{
-				value: count[4].toString(),
-				label: "Sev " + severity[4].toString() + " (" + labels[4] + ")",
-				color: colors[4]
-				},
-				{
-				value: count[3].toString(),
-				label: "Sev " + severity[3].toString() + " (" + labels[3] + ")",
-				color: colors[3]
-				},
-				{
-				value: count[2].toString(),
-				label: "Sev " + severity[2].toString() + " (" + labels[2] + ")",
-				color: colors[2]
-				},
-				{
-				value: count[1].toString(),
-				label: "Sev " + severity[1].toString() + " (" + labels[1] + ")",
-				color: colors[1]
-				},
-				{
-				value: count[0].toString(),
-				label: "Sev " + severity[0].toString() + " (" + labels[0] + ")",
-				color: colors[0]
-				}
-			];
-			
-			var chart = new Chart(ctx).Doughnut(pieData,options);		
-		jQuery("#pie-legend-div-c").append(chart.generateLegend());
-	}
+function drawCVulnsCharts(scanResults) {
+
+    var show_tooltip = true;
+    var count = Array();
+    var severity = Array();
+   	var colors = ["#E8E4AE", "#F4BB48", "#FAA23B", "#DE672A", "#D61E1C"];
+    var c = jQuery("#sevCVulns").get(0);
+    var ctx = c.getContext("2d");
+
+    jQuery("#sevCVulns-error").hide();
+    jQuery("#sevCVulns").show();
+    jQuery("#pie-legend-div-c").show();
+
+    if (scanResults.vulns == "0") {
+        jQuery("#sevCVulns").hide();
+        jQuery("#pie-legend-div-c").hide();
+        jQuery("#sevCVulns-error").show();
+    } else {
+        var d = scanResults.cVulnsBySev;
+        var i = 0;
+        var total = 0;
+
+        for (var key in d) {
+            count[i] = d[key];
+            severity[i] = key;
+            total += count[i];
+            i++;
+        }
+
+        var labels = count;
+        
+        if (!count.some(el => el !== 0)) {
+            count = ["1", "1", "1", "1", "1"];
+            severity = ["1", "2", "3", "4", "5"];
+            labels = ["0", "0", "0", "0", "0"];
+            colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
+            show_tooltip = false;
+        }
+
+        var options = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right'
+                },
+                tooltip: {
+                    enabled: show_tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label;
+                            return label;
+
+                        }
+                    }
+                }
+            }
+        };
+
+        var pieData = {
+            "datasets": [{
+
+                "data": count,
+                "backgroundColor": colors
+            }],
+
+            // These labels appear in the legend and in the tooltips when hovering different arcs
+            "labels": [
+                "Sev " + severity[0].toString() + " : " + labels[0],
+                "Sev " + severity[1].toString() + " : " + labels[1],
+                "Sev " + severity[2].toString() + " : " + labels[2],
+                "Sev " + severity[3].toString() + " : " + labels[3],
+                "Sev " + severity[4].toString() + " : " + labels[4]
+            ]
+
+        };
+
+        jQuery("#confTotCount").text(total);
+
+       new Chart(ctx, {
+            "type": "doughnut",
+            "data": pieData,
+            "options": options
+        });
+    }
 }
 
 function drawPVulnsCharts(scanResults){
-	jQuery("#sevPVulns-error").hide();
-	jQuery("#sevPVulns").show();
-	jQuery("#pie-legend-div-p").show();
-	if(scanResults.vulns == "0"){
-		jQuery("#sevPVulns").hide();
-		jQuery("#pie-legend-div-p").hide();
-		jQuery("#sevPVulns-error").show();
-	}else{
-		var d = scanResults.pVulnsBySev;
-//		var d = {"1": 12,"2": 1,"3": 32,"4": 5,"5": 15}
-		var count = Array();
-		var severity = Array();
-		
-		var i = 0;
-		var total = 0;
-		for (var key in d) {
-			count[i] = d[key];
-		   severity[i] = key;
-		   total += count[i]; 
-		   i++;
-		}
-		var options = {
-		    //segmentShowStroke: false,
-		    animateRotate: true,
-		    animateScale: false,
-		    percentageInnerCutout: 50,
-		    tooltipTemplate: "<%= label %>"
-		}
-//		var colors = ["#CCFFCC", "#CCFFFF", "#FFFF99", "#FF9934","#FF0A00"];
-		var colors = ["#E8E4AE", "#F4BB48", "#FAA23B", "#DE672A","#D61E1C"];
-		var labels = count; 
-		jQuery("#confTotCount").text(total);
-		if(! count.some(el => el !== 0)){
-			count = ["1", "1", "1", "1", "1"];
-			severity = ["1", "2", "3", "4", "5"];
-			labels = ["0", "0", "0", "0", "0"];	
-			colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
-		}
-		
-		var c = jQuery("#sevPVulns").get(0);
-			var ctx = c.getContext("2d");
-		
-			var pieData = [
-				{
-				value: count[4].toString(),
-				label: "Sev " + severity[4].toString() + " (" + labels[4] + ")",
-				color: colors[4]
-				},
-				{
-				value: count[3].toString(),
-				label: "Sev " + severity[3].toString() + " (" + labels[3] + ")",
-				color: colors[3]
-				},
-				{
-				value: count[2].toString(),
-				label: "Sev " + severity[2].toString() + " (" + labels[2] + ")",
-				color: colors[2]
-				},
-				{
-				value: count[1].toString(),
-				label: "Sev " + severity[1].toString() + " (" + labels[1] + ")",
-				color: colors[1]
-				},
-				{
-				value: count[0].toString(),
-				label: "Sev " + severity[0].toString() + " (" + labels[0] + ")",
-				color: colors[0]
-				}
-			];
-			
-			var chart = new Chart(ctx).Doughnut(pieData,options);		
-		jQuery("#pie-legend-div-p").append(chart.generateLegend());
-	}
+	
+    var show_tooltip = true;
+    var count = Array();
+    var severity = Array();
+    var colors = ["#E8E4AE", "#F4BB48", "#FAA23B", "#DE672A", "#D61E1C"];
+    var c = jQuery("#sevPVulns").get(0);
+    var ctx = c.getContext("2d");
+
+    jQuery("#sevPVulns-error").hide();
+    jQuery("#sevPVulns").show();
+    jQuery("#pie-legend-div-p").show();
+
+    if (scanResults.vulns == "0") {
+        jQuery("#sevCVulns").hide();
+        jQuery("#pie-legend-div-p").hide();
+        jQuery("#sevCVulns-error").show();
+    } else {
+        var d = scanResults.pVulnsBySev;
+        var i = 0;
+        var total = 0;
+
+        for (var key in d) {
+            count[i] = d[key];
+            severity[i] = key;
+            total += count[i];
+            i++;
+        }
+
+        var labels = count;
+        
+        if (!count.some(el => el !== 0)) {
+            count = ["1", "1", "1", "1", "1"];
+            severity = ["1", "2", "3", "4", "5"];
+            labels = ["0", "0", "0", "0", "0"];
+            colors = ["#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6", "#B0BFc6"];
+            show_tooltip = false;
+        }
+
+        var options = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'right'
+                },
+                tooltip: {
+                    enabled: show_tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label;
+                            return label;
+
+                        }
+                    }
+                }
+            }
+        };
+
+        var pieData = {
+            "datasets": [{
+
+                "data": count,
+                "backgroundColor": colors
+            }],
+
+            // These labels appear in the legend and in the tooltips when hovering different arcs
+            "labels": [
+                "Sev " + severity[0].toString() + " : " + labels[0],
+                "Sev " + severity[1].toString() + " : " + labels[1],
+                "Sev " + severity[2].toString() + " : " + labels[2],
+                "Sev " + severity[3].toString() + " : " + labels[3],
+                "Sev " + severity[4].toString() + " : " + labels[4]
+            ]
+
+        };
+
+        jQuery("#confTotCount").text(total);
+
+       new Chart(ctx, {
+            "type": "doughnut",
+            "data": pieData,
+            "options": options
+        });
+    }
 }
