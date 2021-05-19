@@ -12,9 +12,8 @@
 }
 #side-panel {
 	padding:0;
-	/*float: left;*/
 	width:250px !important;
-	/*display:block;*/
+	width:250px !important;
 	-webkit-box-sizing: border-box;
  		-moz-box-sizing: border-box;
 	  box-sizing: border-box;
@@ -109,13 +108,13 @@
 .card {
 	float: left;
 	position: relative;
-	height: 280px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    display: inline-block;
-    width: 342px;
-    margin: 15px 20px 15px 0px;
-    box-shadow: 0 4px 16px -2px #607d8d;
+	height: 350px;
+    	background-color: #fff;
+    	border: 1px solid #ddd;
+    	display: inline-block;
+    	width: 350px;
+    	margin: 15px 20px 15px 0px;
+    	box-shadow: 0 4px 16px -2px #607d8d;
 }
 
 .card-title{
@@ -202,7 +201,6 @@
 
 .vulnschart {
 	float: left;
-	/*width:33%;*/
 	position: relative;
 	height: 260px;
     background-color: #fff;
@@ -352,7 +350,8 @@
 	
 #sevPVulns, #sevCVulns{
 	float: left;
-	margin: 5%;
+	margin-left: 5%;
+	padding-bottom : 5%
 }
 
 .chart-legend {
