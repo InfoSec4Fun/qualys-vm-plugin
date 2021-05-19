@@ -427,9 +427,9 @@ public class Helper {
 		if (!numbers.isEmpty()) {
 		   StringBuilder buffer = new StringBuilder();
 		   for (Integer nextN : numbers) {
-		       buffer.append(nextN).append(" ");
+		       buffer.append(", ").append(nextN);
 		   }
-		   return buffer.toString();
+		   return buffer.toString().replaceFirst(",", "");
 		} else {
 			return "";
 		}
@@ -439,9 +439,9 @@ public class Helper {
 		if (!strings.isEmpty()) {
 		   StringBuilder buffer = new StringBuilder();
 		   for (String nextS : strings) {
-		       buffer.append(nextS).append(", ");
+		       buffer.append(", ").append(nextS);
 		   }
-		   return buffer.toString();
+		   return buffer.toString().replaceFirst(",", "");
 		}else {
 			return "";
 		}
@@ -505,8 +505,8 @@ public class Helper {
 					scanObject.remove("threat");
 					scanObject.remove("impact");
 					scanObject.remove("solution");
-					scanObject.remove("exploitability");
-					scanObject.remove("associated_malware");
+					//scanObject.remove("exploitability");
+					//scanObject.remove("associated_malware");
 					scanObject.remove("os_cpe");
 					if (scanObject.has("qid") && scanObject.has("type") && (scanObject.get("type").getAsString().equalsIgnoreCase("Vuln") || scanObject.get("type").getAsString().equalsIgnoreCase("Practice"))) {
 						if (scanObject.get("type").getAsString().equalsIgnoreCase("Vuln")) scanObject.addProperty("type", "Confirmed");

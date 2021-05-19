@@ -13,6 +13,7 @@
 #side-panel {
 	padding:0;
 	width:250px !important;
+	width:250px !important;
 	-webkit-box-sizing: border-box;
  		-moz-box-sizing: border-box;
 	  box-sizing: border-box;
@@ -476,3 +477,20 @@ span.sev-filter-label, select.severity-dropdown {
 		float: left;
 		font-style: italic;
 	}
+	
+.custom-filter-checkbox {
+		-webkit-appearance: checkbox;
+	    width: 20px;
+	    height: 20px;
+	    background: white;
+	    border-radius: 5px;
+	    border: 1px solid #555;
+}
+	
+.custom-filters label, .custom-filters span 
+{
+		position: relative;
+    	top: -5px;
+    	cursor:pointer;
+    	margin-right: 8px !important;
+}
