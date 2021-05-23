@@ -12,9 +12,8 @@
 }
 #side-panel {
 	padding:0;
-	/*float: left;*/
 	width:250px !important;
-	/*display:block;*/
+	width:250px !important;
 	-webkit-box-sizing: border-box;
  		-moz-box-sizing: border-box;
 	  box-sizing: border-box;
@@ -202,7 +201,6 @@
 
 .vulnschart {
 	float: left;
-	/*width:33%;*/
 	position: relative;
 	height: 260px;
     background-color: #fff;

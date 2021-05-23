@@ -351,7 +351,8 @@ function drawCVulnsCharts(scanResults) {
         jQuery("#pie-legend-div-c").hide();
         jQuery("#sevCVulns-error").show();
     } else {
-     	var d = scanResults.cVulnsBySev;
+
+        var d = scanResults.cVulnsBySev;
         var i = 0;
         var total = 0;
 
