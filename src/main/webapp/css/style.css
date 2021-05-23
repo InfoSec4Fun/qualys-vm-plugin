@@ -109,13 +109,13 @@
 .card {
 	float: left;
 	position: relative;
-	height: 280px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    display: inline-block;
-    width: 342px;
-    margin: 15px 20px 15px 0px;
-    box-shadow: 0 4px 16px -2px #607d8d;
+	height: 350px;
+    	background-color: #fff;
+    	border: 1px solid #ddd;
+    	display: inline-block;
+    	width: 350px;
+    	margin: 15px 20px 15px 0px;
+    	box-shadow: 0 4px 16px -2px #607d8d;
 }
 
 .card-title{
@@ -352,7 +352,8 @@
 	
 #sevPVulns, #sevCVulns{
 	float: left;
-	margin: 5%;
+	margin-left: 5%;
+	padding-bottom : 5%
 }
 
 .chart-legend {
@@ -417,7 +418,7 @@
 	}
 	.filters-label {
 		float:left;
-		top: 1px !important;
+		top: 0px !important;
 		font-weight:bold;
 		margin-right: 8px !important;
 	}
@@ -462,13 +463,8 @@ ul.filters-list li {
     border-radius: 5px;
     border: 1px solid #555;
 }
-.custom-filters label, .custom-filters span {
-    position: relative;
-    top: -5px;
-    cursor: pointer;
-}
 
-span.sev-filter-label, select.severity-dropdown {
+span.sev-filter-label {
     margin-left: 20px;
     position: relative;
     top: 0px;
@@ -491,7 +487,10 @@ span.sev-filter-label, select.severity-dropdown {
 .custom-filters label, .custom-filters span 
 {
 		position: relative;
-    	top: -5px;
     	cursor:pointer;
     	margin-right: 8px !important;
+}
+#reset
+{
+	margin-left: 50px;
 }
