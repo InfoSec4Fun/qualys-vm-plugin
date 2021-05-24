@@ -416,7 +416,7 @@
 	}
 	.filters-label {
 		float:left;
-		top: 1px !important;
+		top: 0px !important;
 		font-weight:bold;
 		margin-right: 8px !important;
 	}
@@ -461,13 +461,8 @@ ul.filters-list li {
     border-radius: 5px;
     border: 1px solid #555;
 }
-.custom-filters label, .custom-filters span {
-    position: relative;
-    top: -5px;
-    cursor: pointer;
-}
 
-span.sev-filter-label, select.severity-dropdown {
+span.sev-filter-label {
     margin-left: 20px;
     position: relative;
     top: 0px;
@@ -490,7 +485,10 @@ span.sev-filter-label, select.severity-dropdown {
 .custom-filters label, .custom-filters span 
 {
 		position: relative;
-    	top: -5px;
     	cursor:pointer;
     	margin-right: 8px !important;
+}
+#reset
+{
+	margin-left: 50px;
 }
