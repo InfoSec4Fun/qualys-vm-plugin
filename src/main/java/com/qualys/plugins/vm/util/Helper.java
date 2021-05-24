@@ -501,7 +501,7 @@ public class Helper {
 				arr = respObj.getAsJsonArray("data");			
 				for (JsonElement s: arr) {   					
 					scanObject = s.getAsJsonObject();
-					scanObject.remove("results");
+					//scanObject.remove("results");
 					scanObject.remove("threat");
 					scanObject.remove("impact");
 					scanObject.remove("solution");
