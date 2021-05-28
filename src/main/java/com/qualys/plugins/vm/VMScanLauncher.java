@@ -140,12 +140,9 @@ public class VMScanLauncher{
     /*This method is called in the launchHostScan method under VMScanNotifiers class*/
 	public void getAndProcessLaunchScanResult() throws Exception {
     	try {
-    		//scanMap = launchScan();    		
-    		//String scanRef = scanMap.get("scanRef");
-    		//String scanId = scanMap.get("scanId");
-    		String scanRef = "scan/1621941258.75588";
-    		String scanId = "12345";
-    		
+    		scanMap = launchScan();    		
+    		String scanRef = scanMap.get("scanRef");
+    		String scanId = scanMap.get("scanId");
     		
     		if(scanRef != null && !scanRef.equals("") && scanId != null && !scanId.equals("")) {
 	    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " New Scan launched successfully. Scan ID: " + scanId + " & Scan Reference: " + scanRef);	    		

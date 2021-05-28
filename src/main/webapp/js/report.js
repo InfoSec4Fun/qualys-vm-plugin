@@ -22,8 +22,8 @@ function showVulnsTable(scanResult){
             { "mData": "pci_vuln", sDefaultContent :  '-', "width": "5%"},
             { "mData": "type", sDefaultContent :  '-', "width": "10%"},
             { "mData": "bugtraq_id", sDefaultContent :  '-', "width": "15%"},
-            { "mData": "exploitability", sDefaultContent :  '-'},
-            { "mData": "associated_malware", sDefaultContent :  '-'}
+            { "mData": "exploitability", sDefaultContent :  ''},
+            { "mData": "associated_malware", sDefaultContent :  ''}
            
         ],
         'aoColumnDefs': [
@@ -153,12 +153,27 @@ function showVulnsTable(scanResult){
 	    jQuery(".custom-filter-checkbox").on("change", function(e){
 		switch(this.value){	
 			case 'exploitable': 
-						var value = (this.checked)? 'true' : '';
-						table.columns(9).search( value ).draw();
+						var value = (this.checked)? 'true' : 'false';
+						if(value=="true")
+						{
+                            table.columns(9).search( '^(?!\s*$).+', true, false ).draw();
+						}
+						else
+						{
+							table.columns(9).search( '' ).draw();
+						}
+						
 						break;
 			case 'malware': 
-						var value = (this.checked)? 'true' : '';
-						table.columns(10).search( value ).draw();
+						var value = (this.checked)? 'true' : 'false';
+						if(value=="true")
+						{
+                            table.columns(10).search( '^(?!\s*$).+', true, false ).draw();
+						}
+						else
+						{
+							table.columns(10).search( '' ).draw();
+						}
 						break;
 		}
 	});
@@ -177,7 +192,7 @@ function showVulnsTable(scanResult){
 
 
 function format ( d ) {
-    
+
     var cvss_base;
     var cvss_temporal;
     var cvss3_base;
