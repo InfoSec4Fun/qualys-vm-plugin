@@ -38,8 +38,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 
 public class VMScanLauncher{
-	private Map <String, String> scanMap = null;
-	private Run<?, ?> run;
+    private Map <String, String> scanMap = null;
+    private Run<?, ?> run;
     private TaskListener listener;
     private PrintStream buildLogger;
     private String hostIp;
