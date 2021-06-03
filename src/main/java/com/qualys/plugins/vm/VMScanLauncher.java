@@ -143,6 +143,7 @@ public class VMScanLauncher{
     		scanMap = launchScan();    		
     		String scanRef = scanMap.get("scanRef");
     		String scanId = scanMap.get("scanId");
+    		
     		if(scanRef != null && !scanRef.equals("") && scanId != null && !scanId.equals("")) {
 	    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " New Scan launched successfully. Scan ID: " + scanId + " & Scan Reference: " + scanRef);	    		
 				//evaluate for failure conditions

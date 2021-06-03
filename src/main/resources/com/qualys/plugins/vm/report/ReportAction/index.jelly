@@ -19,7 +19,7 @@
 </l:side-panel>
  
 <l:main-panel>
-	<script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/jquery-3.6.0.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/datatable/js/jquery.dataTables.min.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/js/report.js"></script>
 	 <script type="text/javascript" src="${resURL}/plugin/qualys-vm/jquery/js/chart-3.2.1.min.js"></script>
@@ -80,6 +80,19 @@
 		table#vulnsTable td{
 			word-break: break-all;
 		}
+		
+		td.details-control {
+	    	background: url('${resURL}/plugin/qualys-vm/images/details_open.png') no-repeat center center;
+	    	cursor: pointer;
+		}
+	
+		tr.shown td.details-control {
+	    	background: url('${resURL}/plugin/qualys-vm/images/details_close.png') no-repeat center center;
+		}
+		
+		
+		
+		
 	 </style>
 	
 	<div id="build-summary" class="reports-main-content">

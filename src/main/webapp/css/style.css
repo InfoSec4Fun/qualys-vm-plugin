@@ -13,6 +13,7 @@
 #side-panel {
 	padding:0;
 	width:250px !important;
+	width:250px !important;
 	-webkit-box-sizing: border-box;
  		-moz-box-sizing: border-box;
 	  box-sizing: border-box;
@@ -415,7 +416,7 @@
 	}
 	.filters-label {
 		float:left;
-		top: 1px !important;
+		top: 0px !important;
 		font-weight:bold;
 		margin-right: 8px !important;
 	}
@@ -460,13 +461,8 @@ ul.filters-list li {
     border-radius: 5px;
     border: 1px solid #555;
 }
-.custom-filters label, .custom-filters span {
-    position: relative;
-    top: -5px;
-    cursor: pointer;
-}
 
-span.sev-filter-label, select.severity-dropdown {
+span.sev-filter-label {
     margin-left: 20px;
     position: relative;
     top: 0px;
@@ -476,3 +472,23 @@ span.sev-filter-label, select.severity-dropdown {
 		float: left;
 		font-style: italic;
 	}
+	
+.custom-filter-checkbox {
+		-webkit-appearance: checkbox;
+	    width: 20px;
+	    height: 20px;
+	    background: white;
+	    border-radius: 5px;
+	    border: 1px solid #555;
+}
+	
+.custom-filters label, .custom-filters span 
+{
+		position: relative;
+    	cursor:pointer;
+    	margin-right: 8px !important;
+}
+#reset
+{
+	margin-left: 50px;
+}
