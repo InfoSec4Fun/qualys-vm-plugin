@@ -113,15 +113,6 @@
 								<div class="status_value" style="float:left;">
 										<span id="status_value"></span>
 								</div>
-								<div class="sub_status_value" style="float:left;">
-										<span id="sub_status_value"></span>
-								</div>
-								
-								<span id="resultsStatusDiv"></span>
-								<div id="refresh_status" style="float:left;"> <a href="" onclick="refresh()">Refresh Status</a></div>
-								<div id="statusSpinner" style="float:left;">
-							      <img src="${imagesURL}/spinner.gif" /> Fetching Scan Result...
-							    </div>
 								
 							 </td>
 							 <td id="scanRef" style="display:none;"><div class="report-title">Scan Reference: <span id="reference" class="label-value"></span> </div></td>
@@ -253,8 +244,6 @@
 		jQuery("#vulnerabilities").hide();
 		
 		var myAction= <st:bind value="${it}" />
-		var spinner = document.getElementById("statusSpinner");
-		var refreshLink = document.getElementById("refresh_status");
 		var reportDiv = document.getElementById("reportContainer");
 		var spinner1 = document.getElementById("resultsStatusSpinner");
 		var resultContent = document.getElementById("resultContents");
@@ -300,31 +289,16 @@
 			document.getElementById("pVulnCounts").innerHTML = scanResults["pVulnCount"];
       	}
       	
-      	function activateSpinner(){
-      		spinner.style.display="block";
-      		refreshLink.style.display = "none";
-    	}
-      	
+    	
       	function getStatus() {
-             	var a = ${it.status};
+             	scanResults = ${it.scanResults};
              	var statusVal = document.getElementById("status_value");
-             	var subStatusVal = document.getElementById("sub_status_value");             	
-             	statusVal.innerHTML = a.value;
-             	if(a.subStatus === "No_Host"){
-             		subStatusVal.innerHTML = "&#160;&#160;Host Not Alive";
-             		subStatusVal.style.color = 'red';
-             	} else if(a.subStatus === "Scan Successful"){
-             		subStatusVal.innerHTML = "&#160;";
-             	}
-             	else{
-             		subStatusVal.innerHTML = "&#160;&#160;" + a.subStatus;
-             		subStatusVal.style.color = 'grey';
-             	}
              	
-             	document.getElementById("reference").innerHTML = a.reference;
+             	document.getElementById("reference").innerHTML = "${it.scanRef}";
              	document.getElementById("scanRef").style.display="table-cell";	            
              	document.getElementById("scanBuildStatus").style.display="table-cell";	            
-             	statusVal.classList.add(a.cssClass);
+             	statusVal.classList.add(scanResults.status);
+             	statusVal.innerHTML = scanResults.status;
              	if("${it.buildStatus}" === "PASSED"){
              		document.getElementById("buildStatus").textContent = "${it.buildStatus}";
              		document.getElementById("buildStatus").style.color = "green";
@@ -338,38 +312,28 @@
              		document.getElementById("buildStatus").style.color = "grey";
              	}
              	
-             	if("resultsStatus" in a){             		
-             		refreshLink.style.display = "block";
-             	}
-             	// Annimation of hiding the refreshLink and spinning the spinner
-             	refreshLink.addEventListener("click", activateSpinner, true);             	
-             	if(a.cssClass === "success"){
+             	if(scanResults.status === "Finished"){
              		document.getElementById("scanTarget").textContent = "${it.scanTarget}";             		
-             		spinner.style.display="none";
-             		refreshLink.style.display = "none";
              		reportDiv.style.display = "block";
-             		chartWidgetsDiv.style.display = "block";             		
-             		scanResults = ${it.scanResults};             		
+             		chartWidgetsDiv.style.display = "block";             		           		
              		showReport(scanResults);             		
-             		if(a.subStatus !== "No_Host"){
+             		//if(a.subStatus !== "No_Host"){
              			jQuery(".build-summary-reason").show();
              			drawCVulnsCharts(scanResults);
                  		drawPVulnsCharts(scanResults);
              			showEvaluationSummary(scanResults);
-             		}
+             		//}
              		showVulnsTable(scanResults);
              		drawBuildSummary("${it.buildStatus}");
              	}else{
-             		scanResults = ${it.scanResults};
              		document.getElementById("scanTarget").textContent = "${it.scanTarget}";
-             		refreshLink.style.display = "block";
              		showReport(scanResults);             		
-             		if(a.subStatus !== "No_Host"){
+             		//if(a.subStatus !== "No_Host"){
              			drawCVulnsCharts(scanResults);
                  		drawPVulnsCharts(scanResults);
              			jQuery(".build-summary-reason").show();
              			showEvaluationSummary(scanResults);
-             		}
+             		//}
              		showVulnsTable(scanResults);
              	}
              	

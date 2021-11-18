@@ -101,6 +101,10 @@ public class ReportAction implements Action {
     public String getReportUrl() {
     	return this.reportUrl;
     }
+
+    public String getScanRef() {
+    	return this.scanRef;
+    }
     
     public String getBuildStatus() {
     	JsonObject respObj = null;
@@ -354,104 +358,6 @@ public class ReportAction implements Action {
     	return scanResult;
     }
     
-    @JavaScriptMethod
-    public JSONObject getStatus() {
-    	JSONObject statusDetails = new JSONObject();
-    	try {
-    		if(status!=null && status.equalsIgnoreCase("Finished")) {
-    			statusDetails.put("value", status);
-    			statusDetails.put("subStatus", subScanStatus);
-        		statusDetails.put("cssClass", "success");        		
-        		statusDetails.put("reference", this.reference);
-    		}else {
-    			statusDetails = parseScanStatus(scanRef);
-	    		if(statusDetails.get("value").equals("Finished")) {
-	    			this.status = "Finished";
-	    		}	    		
-    		}
-    	}catch(Exception e) {
-    		logger.warning("Exception in get result Status. Error: " + e.getMessage());
-    		statusDetails.put("value", e.getMessage());
-    		statusDetails.put("cssClass", "error");
-    	}
-    	
-    	return statusDetails;
-    }
-    
-    public JSONObject parseScanStatus(String scanIdRef) throws Exception {
-    	JSONObject statusObj = new JSONObject();
-    	Document result = null;
-    	try {
-    		QualysAuth auth = new QualysAuth();
-	    	auth.setQualysCredentials(this.apiServer, this.apiUser, this.apiPass.getPlainText());
-	    	if(useProxy) {
-	        	//int proxyPortInt = Integer.parseInt(proxyPort);
-	        	auth.setProxyCredentials(this.proxyServer, this.proxyPort, this.proxyUsername, this.proxyPassword.getPlainText(), this.useProxy);
-	    	}
-	    	QualysVMClient qualysClient = new QualysVMClient(auth, System.out);
-    		QualysVMResponse resp = qualysClient.vMScansList(scanIdRef);
-    		result = resp.getResponseXml();
-    		//parse result
-   			Integer respCodeObj = resp.getResponseCode();
-   			if(respCodeObj == null || respCodeObj != 200 ) {
-   				String error = resp.getErrorMessage();   				
-   				logger.info("Error while fetching the scan result from report. Server returned: " + error +". Please do retry after sometime.");
-   				throw new AbortException("Error while fetching the scan result from report. Server returned: " + error +". Please do retry after sometime.");   				
-   			}else {
-   				NodeList scanList = result.getElementsByTagName("SCAN");
-        		for (int temp = 0; temp < scanList.getLength(); temp++) {	        			
-        			Node nNode = scanList.item(temp);
-        			if (nNode.getNodeType() == Node.ELEMENT_NODE) {        				
-	                    Element eElement = (Element) nNode;	   
-	                    if (eElement.getElementsByTagName("DURATION").getLength() > 0) {
-	                    	this.duration = eElement.getElementsByTagName("DURATION").item(0).getTextContent().trim();	
-	                    }
-	                    if (eElement.getElementsByTagName("REF").getLength() > 0) {
-	                    	this.reference = eElement.getElementsByTagName("REF").item(0).getTextContent().trim();	
-	                    }
-	                    if (eElement.getElementsByTagName("TYPE").getLength() > 0) {
-	                    	this.scanType = eElement.getElementsByTagName("TYPE").item(0).getTextContent().trim();	
-	                    }
-	                    if (eElement.getElementsByTagName("STATE").getLength() > 0) {
-	                    	this.status = eElement.getElementsByTagName("STATE").item(0).getTextContent().trim();	
-	                    }
-	                    if (eElement.getElementsByTagName("STATE").item(0).getTextContent().trim().equalsIgnoreCase("Finished")) {
-	                    	if (eElement.getElementsByTagName("SUB_STATE").getLength() > 0 ) {
-		                    	this.subScanStatus = eElement.getElementsByTagName("SUB_STATE").item(0).getTextContent().trim();	
-		                    }else {
-		                    	this.subScanStatus = "Scan Successful";
-		                    }
-	                    }
-	            		} // End of if	                    
-        			} // End of Outer if   				
-        		logger.info("Scan Status: " + this.status);
-        		logger.info("Scan subScanStatus: " + this.subScanStatus);
-				try {   						   					
-   					statusObj.put("reference", this.reference);	   					
-				}catch(Exception e) {
-					//these values if not received in status api call will overwritten in getScanResult api call
-					if(statusObj.get("reference") != null) statusObj.put("reference", "");   						
-				}
-				
-				if(this.status.equalsIgnoreCase("Finished")) {
-					statusObj.put("value", "Finished");
-					statusObj.put("subStatus", subScanStatus);
-					statusObj.put("cssClass", "success");
-				}else {
-					statusObj.put("value", this.status);
-					statusObj.put("subStatus", subScanStatus);
-					statusObj.put("cssClass", "info");
-					statusObj.put("resultsStatus", this.status);
-	   					
-	   			}
-   			}
-    	} catch(Exception e) {
-    		for (StackTraceElement traceElement : e.getStackTrace())
-                logger.info("\tat " + traceElement);
-    		throw e;
-    	}    		
-    	return statusObj;
-    }
 
 	@Override
 	public String getIconFileName() {
