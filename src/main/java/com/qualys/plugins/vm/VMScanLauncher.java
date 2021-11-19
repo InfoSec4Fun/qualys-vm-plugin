@@ -160,7 +160,9 @@ public class VMScanLauncher{
 	    			this.scanTarget = this.hostIp;
 	    		} else {
 	    			this.scanTarget = this.ec2Id;
-	    		}	    		
+	    		}
+	    		result = fetchScanResult(scanRef);
+	    		
 	    		ReportAction action = new ReportAction(run, scanRef, scanId, scanTarget, scannerName, 
 	    				scanNameResolved, this.auth.getServer(), this.auth.getUsername(), 
 	    				this.auth.getPassword(), this.auth.getUseProxy(), 
@@ -169,7 +171,6 @@ public class VMScanLauncher{
 	    				duration, reference, scanType, scanStatus, subScanStatus);
 				run.addAction(action);				
 				
-				result = fetchScanResult(scanRef);
 				String scanRefNew = scanRef.replace("/","_");
 				
 				if(result != null) {
