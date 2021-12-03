@@ -317,23 +317,19 @@
              		reportDiv.style.display = "block";
              		chartWidgetsDiv.style.display = "block";             		           		
              		showReport(scanResults);             		
-             		//if(a.subStatus !== "No_Host"){
-             			jQuery(".build-summary-reason").show();
-             			drawCVulnsCharts(scanResults);
-                 		drawPVulnsCharts(scanResults);
-             			showEvaluationSummary(scanResults);
-             		//}
+         			jQuery(".build-summary-reason").show();
+         			drawCVulnsCharts(scanResults);
+             		drawPVulnsCharts(scanResults);
+         			showEvaluationSummary(scanResults);
              		showVulnsTable(scanResults);
              		drawBuildSummary("${it.buildStatus}");
              	}else{
              		document.getElementById("scanTarget").textContent = "${it.scanTarget}";
              		showReport(scanResults);             		
-             		//if(a.subStatus !== "No_Host"){
-             			drawCVulnsCharts(scanResults);
-                 		drawPVulnsCharts(scanResults);
-             			jQuery(".build-summary-reason").show();
-             			showEvaluationSummary(scanResults);
-             		//}
+         			drawCVulnsCharts(scanResults);
+             		drawPVulnsCharts(scanResults);
+         			jQuery(".build-summary-reason").show();
+         			showEvaluationSummary(scanResults);
              		showVulnsTable(scanResults);
              	}
              	
