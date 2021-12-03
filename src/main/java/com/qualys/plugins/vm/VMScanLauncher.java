@@ -170,7 +170,7 @@ public class VMScanLauncher{
 	    		try {
 	    			getDataInArray = result.get("data").getAsJsonArray();
 	    		} catch (Exception e) {
-	    			logger.info("Exception while getting the scan result for check scan status. Error: " + e.getMessage());
+	    			logger.info("Could not check the scan status due to following exception: " + e.getMessage());
 	    			for (StackTraceElement traceElement : e.getStackTrace())
 	                    logger.info("\tat " + traceElement);
 	    		}
