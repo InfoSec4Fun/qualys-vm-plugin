@@ -36,6 +36,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 public class VMScanLauncher{
     private Map <String, String> scanMap = null;
@@ -143,6 +144,7 @@ public class VMScanLauncher{
     		scanMap = launchScan();    		
     		String scanRef = scanMap.get("scanRef");
     		String scanId = scanMap.get("scanId");
+
     		
     		if(scanRef != null && !scanRef.equals("") && scanId != null && !scanId.equals("")) {
 	    		buildLogger.println(new Timestamp(System.currentTimeMillis()) + " New Scan launched successfully. Scan ID: " + scanId + " & Scan Reference: " + scanRef);	    		
@@ -163,13 +165,31 @@ public class VMScanLauncher{
 	    		}
 	    		result = fetchScanResult(scanRef);
 	    		
-	    		ReportAction action = new ReportAction(run, scanRef, scanId, scanTarget, scannerName, 
-	    				scanNameResolved, this.auth.getServer(), this.auth.getUsername(), 
-	    				this.auth.getPassword(), this.auth.getUseProxy(), 
-	    				this.auth.getProxyServer(), this.auth.getProxyPort(), 
-	    				this.auth.getProxyUsername(), this.auth.getProxyPassword(), this.auth.getServerPlatformUrl(),
-	    				duration, reference, scanType, scanStatus, subScanStatus);
-				run.addAction(action);				
+	    		// Checking scan status
+	    		JsonArray getDataInArray = null;
+	    		try {
+	    			getDataInArray = result.get("data").getAsJsonArray();
+	    		} catch (Exception e) {
+	    			logger.info("Could not check the scan status due to following exception: " + e.getMessage());
+	    			for (StackTraceElement traceElement : e.getStackTrace())
+	                    logger.info("\tat " + traceElement);
+	    		}
+	    		// Iterate over each JSON object in the List
+	    		if (getDataInArray != null) {
+	    			for (JsonElement vuln : getDataInArray) {
+	    				JsonObject scanObject = vuln.getAsJsonObject();
+	    				if (scanObject.has("status") && scanObject.get("status").getAsString().equalsIgnoreCase("Finished")) {
+	    					ReportAction action = new ReportAction(run, scanRef, scanId, scanTarget, scannerName, 
+	    		    				scanNameResolved, this.auth.getServer(), this.auth.getUsername(), 
+	    		    				this.auth.getPassword(), this.auth.getUseProxy(), 
+	    		    				this.auth.getProxyServer(), this.auth.getProxyPort(), 
+	    		    				this.auth.getProxyUsername(), this.auth.getProxyPassword(), this.auth.getServerPlatformUrl(),
+	    		    				duration, reference, scanType, scanStatus, subScanStatus);
+	    					run.addAction(action);
+	    					break;
+	    				}
+	    			}
+	    		}
 				
 				String scanRefNew = scanRef.replace("/","_");
 				
