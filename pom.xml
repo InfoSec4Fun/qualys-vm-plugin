@@ -11,7 +11,7 @@
   
   <groupId>com.qualys.plugins</groupId>
   <artifactId>qualys-vm</artifactId>
-  <version>1.1.4-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <properties>   
@@ -144,6 +144,7 @@
   	<name>Qualys Inc.</name>
   	<url>https://www.qualys.com/</url>
   </organization>
+	
   <developers>
        <developer>
                <id>Qualys</id>
