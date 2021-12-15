@@ -6,7 +6,7 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>4.13</version>
-    <relativePath />
+    <relativePath/>
   </parent>
   
   <groupId>com.qualys.plugins</groupId>
@@ -128,7 +128,7 @@
 	<dependency>
 		  <groupId>org.apache.maven</groupId>
 		  <artifactId>maven-model</artifactId>
-		  <version>3.6.3</version>
+		  <version>3.8.4</version>
 	  </dependency>
 	  
   </dependencies>
